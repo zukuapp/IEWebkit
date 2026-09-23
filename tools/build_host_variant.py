@@ -13,6 +13,7 @@ import sys
 import tempfile
 
 import variants
+import verify_host_pe
 
 ROOT = Path(__file__).resolve().parents[1]
 # ME uses the conservative Windows 4.10 common API surface plus the explicit
@@ -199,6 +200,8 @@ def build(configuration, work_dir, root=ROOT):
         if 'file format ' + expected not in pe:
             raise ValueError('linked host architecture does not match selected variant')
         (artifact / 'pe-architecture.txt').write_text(pe)
+        verification = verify_host_pe.verify((artifact / 'iewebkit-host.dll').read_bytes(), configuration)
+        (artifact / 'pe-verification.json').write_text(json.dumps(verification, indent=2) + '\n')
         metadata = dict(schema_version=1, product='IEWebkit', artifact_kind='development-host',
                         engine_included=False, guest_verified=False, release_eligible=False,
                         configuration=configuration,

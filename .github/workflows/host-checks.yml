@@ -26,8 +26,18 @@ jobs:
           python3 -m unittest discover -s porting/tests -p 'test_*.py'
       - name: Test native contract and cross-compile IE host and lifecycle harness
         run: make -C host test docobject lifecycle-test-binary
-      - name: Build representative IE and OS hosts with distinct metadata
+      - name: Build and inspect every declared IE, OS, architecture and mode
         run: |
-          python3 tools/build_host_variant.py --profile ie55-winme --arch x86 --mode classic --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
-          python3 tools/build_host_variant.py --profile ie11-win7-sp1 --arch x86 --mode protected --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
-          python3 tools/build_host_variant.py --profile ie11-win7-sp1 --arch x64 --mode protected --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
+          python3 tools/build_host_matrix.py --jobs 2 --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
+      - name: Retain development metadata and hashes (no engine or guest certification)
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: unverified-host-matrix-metadata
+          path: |
+            ${{ runner.temp }}/iewebkit-hosts/matrix-*.json
+            ${{ runner.temp }}/iewebkit-hosts/*/build.json
+            ${{ runner.temp }}/iewebkit-hosts/*/pe-verification.json
+            ${{ runner.temp }}/iewebkit-hosts/*.failed.log
+          if-no-files-found: warn
+          retention-days: 14

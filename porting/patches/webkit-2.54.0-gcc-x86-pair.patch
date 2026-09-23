@@ -1,0 +1,28 @@
+--- a/Source/bmalloc/libpas/src/libpas/pas_utils.h
++++ b/Source/bmalloc/libpas/src/libpas/pas_utils.h
+@@ -950,11 +950,15 @@
+ 
+ #else
+ 
++#if PAS_X86 && !PAS_X86_64
++typedef uint64_t pas_pair;
++#else
+ typedef __uint128_t pas_pair;
++#endif
+ 
+ static inline pas_pair pas_pair_create(uintptr_t low, uintptr_t high)
+ {
+-    return ((pas_pair)low) | ((pas_pair)(high) << 64);
++    return ((pas_pair)low) | ((pas_pair)(high) << (sizeof(uintptr_t) * CHAR_BIT));
+ }
+ 
+ static inline uintptr_t pas_pair_low(pas_pair pair)
+@@ -964,7 +968,7 @@
+ 
+ static inline uintptr_t pas_pair_high(pas_pair pair)
+ {
+-    return pair >> 64;
++    return pair >> (sizeof(uintptr_t) * CHAR_BIT);
+ }
+ 
+ #endif

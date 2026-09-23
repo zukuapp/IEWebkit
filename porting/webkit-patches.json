@@ -1,0 +1,45 @@
+{
+  "source_commit": "5220e80b97a253c60ed899361654142ab5021998",
+  "patches": [
+    {
+      "patch": "patches/webkit-2.54.0-mingw-size-t.patch",
+      "path": "Source/bmalloc/bmalloc/VMAllocate.h",
+      "before_sha256": "d92807c17e34eabf574afd4f14504e8707e49f0dfe1ca8d0e709d2594a043eca",
+      "after_sha256": "c14bae452e59b6da437e11c8c9c0f8e8b2ef991cd72eae1cceeec9eae3099617",
+      "patch_sha256": "e1db594f56a37c0ab4067f9422023ef6abc3947e715f9f679ea1d7cf98903d49",
+      "reason": "MinGW32 SIZE_T and size_t are distinct32-bit unsigned types; explicitly convert RegionSize before std::min template deduction."
+    },
+    {
+      "patch": "patches/webkit-2.54.0-win9x-declarations.patch",
+      "path": "Source/cmake/OptionsJSCOnly.cmake",
+      "before_sha256": "88beef9d63b1e160e83512eb8afe5459794f91c2006e4a0b77dcfd0bc3085af2",
+      "after_sha256": "fa6afbbfcd697cde09dedb25671833be158077b32dbcf0a2321b109d620eec12",
+      "patch_sha256": "81e4b9308fed7db62dbdc7155252a488671d13fd646e60a0361d54840df368d1",
+      "reason": "Use coherent Win9x/NT4 header declarations in an opt-in JSCOnly port; retain upstream Win10 defaults otherwise."
+    },
+    {
+      "patch": "patches/webkit-2.54.0-gcc-x86-pair.patch",
+      "path": "Source/bmalloc/libpas/src/libpas/pas_utils.h",
+      "before_sha256": "ed137fbe48c6693a6629839e920bdac2f3243bdb67d228bdcc67e653daf9f8ce",
+      "after_sha256": "55f2bb0bb25adedf1e6cfd1a6f9eebcc504505f9b7d48258878d468b85f06734",
+      "patch_sha256": "31e1f250c0888ea621914b2d4ff586315855eb2729bad0768a5d59e822768473",
+      "reason": "Represent a pair of32-bit x86 pointers in64bits; preserve128-bit representation on64-bit GCC and existing compiler atomic operations."
+    },
+    {
+      "patch": "patches/webkit-2.54.0-win9x-mimalloc-lock.patch",
+      "path": "Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h",
+      "before_sha256": "6e6c79c07c9b919b56bcbb401f24ab62c80efadc33f1e6b5d52f20c04dfb35d5",
+      "after_sha256": "d7c3b178e23ed09da1294d7ddc053879a883c0ce9d409717056341e5bc3ea0fb",
+      "patch_sha256": "9259b534cfb31a2809ddba47b8e0e4611e7e989df9e38f291fbaddae3556cf43",
+      "reason": "Select bundled Critical Section implementation for explicit Win9x declarations; keep SRW behavior elsewhere. ME behavioral validation remains required."
+    },
+    {
+      "patch": "patches/webkit-2.54.0-portable-tick-literal.patch",
+      "path": "Source/WTF/wtf/CurrentTime.cpp",
+      "before_sha256": "f735ade17899d8192fb6a39abb0780bf19cb56a5bc7aea5471468b308827a37c",
+      "after_sha256": "4ccea57542dc92addf1d4e487d1e61bd2d697cda58e2fab5db07d1164f87cc59",
+      "patch_sha256": "a2949183015a9797286023f7a07aca0ab27aee71786178a819949558b3e18f57",
+      "reason": "Use standard signed long long suffix for 32-bit GetTickCount wrap correction; value and arithmetic unchanged."
+    }
+  ]
+}

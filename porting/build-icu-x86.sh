@@ -19,8 +19,9 @@ cd "$work/host-build"
     --disable-extras --with-data-packaging=static > "$work/host-configure.log" 2>&1
 make -j"$jobs" > "$work/host-build.log" 2>&1
 cd "$work/target-build"
+build_triplet=$(sh "$work/icu/source/config.guess")
 "$work/icu/source/configure" --host=i686-w64-mingw32 \
-    --build="$("$work/icu/source/config.guess")" \
+    --build="$build_triplet" \
     --with-cross-build="$work/host-build" --prefix="$work/prefix-x86" \
     --enable-static --disable-shared --disable-tests --disable-samples \
     --disable-extras --disable-tools --disable-icuio --with-data-packaging=static \
@@ -28,5 +29,8 @@ cd "$work/target-build"
     AR=i686-w64-mingw32-ar RANLIB=i686-w64-mingw32-ranlib \
     CFLAGS=-Os CXXFLAGS=-Os > "$work/target-configure.log" 2>&1
 make -j"$jobs" > "$work/target-build.log" 2>&1
-make install > "$work/target-install.log" 2>&1
+# ICU's MinGW defaults move even the static data archive to bin; keep it
+# beside uc/i18n and replace the temporary stub-data archive correctly.
+make install MINGW_MOVEDLLSTOBINDIR=NO > "$work/target-install.log" 2>&1
+cmp "$work/target-build/lib/libsicudt.a" "$work/prefix-x86/lib/libsicudt.a"
 printf '%s\n' "$work/prefix-x86"

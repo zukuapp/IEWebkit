@@ -1,0 +1,12 @@
+--- a/Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h
++++ b/Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h
+@@ -443,7 +443,8 @@
+ 
+ #if defined(_WIN32)
+ 
+-#if 1
++// Win9x has no SRW API; use the existing in-process critical section path.
++#if !defined(_WIN32_WINDOWS) || _WIN32_WINDOWS > 0x0490
+ #define mi_lock_t  SRWLOCK   // slim reader-writer lock
+ 
+ static inline bool mi_lock_try_acquire(mi_lock_t* lock) {

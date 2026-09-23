@@ -42,7 +42,7 @@ cmake --build /absolute/external/build-area/build-me-jsc --target jsc --parallel
 The bootstrap does not overwrite an existing unrecognized source tree. A
 successful tree has a pin stamp and can subsequently carry deliberate patches.
 The configure profile is an **interpreter bootstrap**, with JIT, remote inspector,
-and WebAssembly disabled and system malloc requested. It is not a final product
+and WebAssembly disabled and bundled mimalloc selected. It is not a final product
 feature profile. Upstream explicitly marks `ENABLE_WEBASSEMBLY` and `ENABLE_C_LOOP`
 as conflicting options (`Source/cmake/WebKitFeatures.cmake`), so modern WASM on
 ME still requires a separate implementation decision and validation. Disabling
@@ -51,14 +51,68 @@ WASM for this first compile must not become an unreported product limitation.
 ## Measured result
 
 On 2026-09-23, checksum-pinned extraction and all supplemental downloads passed.
-The MinGW32 compiler's C/C++ ABI checks passed. Configuration then stopped at
-missing **target ICU 70.1+** include/data/i18n/uc libraries. The configured package
-repositories did not offer `mingw32-icu`. Host Perl/Ruby build prerequisites were
-installed and their checks passed. No `jsc.exe` or engine was produced.
+The MinGW32 compiler's C/C++ ABI checks passed. The first configuration stopped
+at missing target ICU. The pinned ICU 78.3 x86 compile bootstrap now builds and
+installs successfully, and JSC configuration completes with those target archives.
+Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
+`libbmalloc.a` and compiles initial WTF files. It stops in `DateMath.cpp` at the
+unavailable `GetTimeZoneInformationForYear` API. No `jsc.exe` or engine was produced.
 
-The next dependency build should cross-compile current ICU for x86 with its
-own Win9x API/CRT import audit. Do not point the target linker at host Linux ICU
-or use a newer-Windows ICU binary as proof of ME compatibility.
+The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
+unmodified upstream profile uses Windows 7 declarations and must not be treated
+as a Windows ME runtime port. See [ICU.md](ICU.md) for reproducible commands,
+measured compile gates and the linked-binary audit. Do not point the target
+linker at host Linux ICU or use a newer-Windows binary as proof of ME compatibility.
+
+## Reviewed source patches
+
+`configure-jsc-me.sh` applies the source-hash-pinned patches from
+`webkit-patches.json` before configuration. `apply-webkit-patches.py` verifies
+original and final hashes, applies each patch atomically, supports an already
+applied patch, and rejects unexpected edits or symlink targets. Its tests cover
+those preservation boundaries.
+
+- `webkit-2.54.0-mingw-size-t.patch`: converts Win32 `SIZE_T` to `size_t` before
+  `std::min`; MinGW32 uses distinct unsigned types of the same width.
+- `webkit-2.54.0-win9x-declarations.patch`: adds opt-in `IEWEBKIT_WIN9X` with
+  coherent Windows header declarations, preserving upstream defaults otherwise.
+  This prevents Win10 `NTDDI_VERSION` from conflicting with the ME target macros.
+
+- `webkit-2.54.0-gcc-x86-pair.patch`: packs two 32-bit pointers into a 64-bit
+  integer on GCC x86, with pointer-width shifts. The 64-bit GCC representation
+  remains 128 bits, and compiler atomic operations are retained.
+- `webkit-2.54.0-win9x-mimalloc-lock.patch`: selects mimalloc's existing Critical
+  Section implementation for explicit Win9x declarations. Other Windows builds
+  retain SRW locks. Export presence does not prove ME lock semantics.
+- `webkit-2.54.0-portable-tick-literal.patch`: replaces the MSVC `I64` literal
+  suffix with standard `LL`, preserving the value used for 32-bit tick wrap.
+
+The initial system-malloc experiment was rejected by WebKit's Windows allocator
+contract; the bootstrap selects bundled mimalloc instead. These patches do not
+complete the Win9x OS abstraction.
+
+## Allocator probes
+
+Build tests against the actual patched headers:
+
+```
+sh porting/build-allocator-probes.sh \
+    /absolute/external/build-area/webkitgtk-2.54.0 \
+    /absolute/external/build-area/allocator-probes
+```
+
+The native host pair test passed packing, failed CAS, concurrent CAS/load/store
+and final counter checks. The Pentium III x86 fixture emits `cmpxchg8b` without a
+libatomic dependency. Both ME-target fixtures pass the pinned ME import audit.
+The modern-declaration lock regression build retains its SRW imports. The build
+script does **not** execute Windows binaries or certify the ME guest.
+
+`pas-pair-smoke.exe` checks pair layout, alignment and concurrent updates.
+`mimalloc-lock-smoke.exe` checks try-lock failure from another thread, blocking
+handoff, 100,000 contended increments and teardown. Guest evidence must include
+the exact executable digest, exit code and output; exported ME API stubs can
+still fail these behavioral tests.
+
 
 ## Concrete OS abstraction seams
 
@@ -73,6 +127,7 @@ porting evidence:
 | `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
 | `WTF/wtf/StackBounds.cpp` | Unconditional Windows `GetCurrentThreadStackLimits`; ME needs correct main/worker stack bounds including guard-page behavior. |
 | `WTF/wtf/win/FileHandleWin.cpp` | `SetFileInformationByHandle`, modern seeking and Unicode/file paths; adapt using available ME APIs and preserve offsets/error behavior. |
+| `WTF/wtf/DateMath.cpp` | `GetTimeZoneInformationForYear` is the current compile gate. A replacement must preserve timezone/DST semantics, including return-value interpretation; substituting a zero offset is not valid. |
 | `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |
 | `WTF/wtf/PlatformJSCOnly.cmake` | Links `synchronization`, DbgHelp and other Windows libraries; a Win9x port must remove/replace unavailable services. |
 | `Source/cmake/OptionsWin.cmake` | Defaults to Skia in this pinned revision; a Cairo branch remains with `USE_SKIA=OFF`. Full WebCore additionally requires curl, HarfBuzz, ICU, JPEG, XML, OpenSSL, PNG, SQLite, zlib, PSL and WebP, plus a port of the Windows view/event layer. |

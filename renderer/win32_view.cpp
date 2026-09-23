@@ -122,8 +122,10 @@ struct View {
       lab_log("paint.layout.width", rect.right);
       lab_log("paint.layout.height", rect.bottom);
     }
-    if (rect.right < 1)
-      return true;
+    if (rect.right < 1 || rect.bottom < 1) {
+      if (trace) lab_log("paint.layout.deferred",1);
+      return true; // Bytes accepted; a later WM_SIZE must produce the pixels.
+    }
     HDC dc = GetDC(window);
     if (!dc)
       return false;

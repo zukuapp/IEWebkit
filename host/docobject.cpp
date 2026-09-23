@@ -57,6 +57,35 @@ class Document : public IOleObject,
   IEWKHostV1 host;
   char url[IEWK_URL_LIMIT + 1];
   uint32_t navigation;
+  bool requesting_document_activation;
+  static bool has_area(const RECT &value) {
+    return value.right > value.left && value.bottom > value.top;
+  }
+  void resolve_rectangle(HWND parent) {
+    if (has_area(rectangle)) return;
+    IOleInPlaceFrame *frame = NULL;
+    IOleInPlaceUIWindow *document_window = NULL;
+    RECT position = {0,0,0,0}, clip = {0,0,0,0};
+    OLEINPLACEFRAMEINFO info;
+    std::memset(&info,0,sizeof info);
+    info.cb = sizeof info;
+    HRESULT hr = place->GetWindowContext(&frame,&document_window,&position,&clip,&info);
+    iewk_navigation_trace("Document.GetWindowContext",hr);
+    if (document_window) document_window->Release();
+    if (frame) frame->Release();
+    if (SUCCEEDED(hr) && has_area(position)) {
+      rectangle = position;
+      iewk_navigation_trace("Document.rect_from_context",1);
+    } else {
+      // IE can activate a view before SetRect and before its own window is
+      // visible. An empty DoVerb rectangle is not a usable viewport. The
+      // parent's actual client coordinates supply the initial size; later
+      // SetRect/SetObjectRects calls remain authoritative.
+      RECT client = {0,0,0,0};
+      if (GetClientRect(parent,&client)) rectangle = client;
+      iewk_navigation_trace("Document.rect_from_parent",has_area(rectangle));
+    }
+  }
   void close_view() {
     if (view) {
       engine.api->destroy(view);
@@ -195,6 +224,7 @@ class Document : public IOleObject,
       return hr;
     if (FAILED(place->GetWindow(&parent)) || !parent)
       return E_FAIL;
+    resolve_rectangle(parent);
 #ifdef IEWK_SUBSET_LAB
     RECT parent_rect = {0,0,0,0};
     GetClientRect(parent,&parent_rect);
@@ -228,12 +258,19 @@ class Document : public IOleObject,
       iewk_navigation_trace("Document.OnInPlaceActivate.enter",1);
       HRESULT activation = place->OnInPlaceActivate();
       iewk_navigation_trace("Document.OnInPlaceActivate.exit",activation);
+      if (FAILED(activation)) {
+        close_view();
+        return activation;
+      }
     }
     iewk_navigation_trace("Document.resize.enter",1);
     engine.api->resize(view, 0, 0, rectangle.right - rectangle.left,
                        rectangle.bottom - rectangle.top);
     iewk_navigation_trace("Document.resize.exit",1);
     ShowWindow(window, SW_SHOW);
+    // Do not show IE's parent/ancestors ourselves. Their eventual visibility
+    // transition must paint the complete child subtree at its resolved size.
+    RedrawWindow(window,NULL,NULL,RDW_INVALIDATE | RDW_ALLCHILDREN);
     iewk_navigation_trace("Document.shown_visible",IsWindowVisible(window));
     iewk_navigation_trace("Document.show.exit",1);
     return S_OK;
@@ -242,11 +279,11 @@ class Document : public IOleObject,
 public:
   Document()
       : refs(1), site(NULL), place(NULL), moniker(NULL), window(NULL),
-        view(NULL), navigation(0) {
+        view(NULL), navigation(0), requesting_document_activation(false) {
     std::memset(&engine, 0, sizeof engine);
     std::memset(&host, 0, sizeof host);
     url[0] = 0;
-    ::SetRect(&rectangle, 0, 0, 640, 480);
+    ::SetRectEmpty(&rectangle);
     host.size = sizeof host;
     host.abi = IEWK_ABI_V1;
     host.context = this;
@@ -364,6 +401,26 @@ public:
     if (verb != OLEIVERB_SHOW && verb != OLEIVERB_PRIMARY &&
         verb != OLEIVERB_INPLACEACTIVATE && verb != OLEIVERB_UIACTIVATE)
       return OLEOBJ_S_INVALIDVERB;
+    // A DocObject asks its container to activate a document view. Calling the
+    // plain in-place path directly bypasses IE's SetInPlaceSite/UIActivate/
+    // SetRect sequence (IE5.5 supplied an empty DoVerb rect in the ME lab).
+    if (site && !requesting_document_activation) {
+      IOleDocumentSite *document_site = NULL;
+      HRESULT query = site->QueryInterface(IID_IOleDocumentSite,
+                         reinterpret_cast<void **>(&document_site));
+      iewk_navigation_trace("Document.document_site",query);
+      if (SUCCEEDED(query) && document_site) {
+        AddRef();
+        requesting_document_activation = true;
+        HRESULT activated = document_site->ActivateMe(
+            static_cast<IOleDocumentView *>(this));
+        requesting_document_activation = false;
+        document_site->Release();
+        iewk_navigation_trace("Document.ActivateMe",activated);
+        Release();
+        return activated;
+      }
+    }
     if (!place && site)
       site->QueryInterface(IID_IOleInPlaceSite,
                            reinterpret_cast<void **>(&place));
@@ -471,6 +528,7 @@ public:
     if (!value)
       return E_POINTER;
     rectangle = *value;
+    if (window && place) resolve_rectangle(GetParent(window));
     iewk_navigation_trace("Document.SetRect.width",rectangle.right-rectangle.left);
     iewk_navigation_trace("Document.SetRect.height",rectangle.bottom-rectangle.top);
     if (window) {

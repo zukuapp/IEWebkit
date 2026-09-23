@@ -120,6 +120,14 @@
       "after_sha256": "a23c53691fdcbaed195276d53a4a4e1b4c14a8d3b96cce4fa9c53974cdc6069a",
       "patch_sha256": "7e8e1c46d9c9aa0ed52d8db370a5d376f34d853c180d238e5433dc54586adbc7",
       "reason": "Use canonical dbghelp library spelling; omit synchronization API-set imports only in explicit Win9x profile, retaining the modern dependency list."
+    },
+    {
+      "path": "Source/JavaScriptCore/shell/CMakeLists.txt",
+      "patch": "patches/webkit-2.54.0-jsc-shell-winmm-case.patch",
+      "before_sha256": "ce22ff6a6e32adf225e9a14867ec4c8573ffe547eb1fe45e8cd26ea3a033bd72",
+      "after_sha256": "47f618a3f2aba2abf0f4bff32c1a9486da7762f923a46a8324af537b5a81bf11",
+      "patch_sha256": "dea43cbc69b67acc46161eeb8bf523db7e00da9640f8f3a2e0b942f13581e660",
+      "reason": "Use canonical lowercase WinMM import-library spelling for case-sensitive MinGW link hosts; Windows behavior unchanged."
     }
   ]
 }

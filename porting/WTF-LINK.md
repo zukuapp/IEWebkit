@@ -92,10 +92,11 @@ provider acquisition), entropy quality and concurrency still require ME runtime
 validation. Export presence does not establish that a Win9x API is implemented.
 
 No `jsc.exe`, JavaScriptCore archive or WebCore renderer has been completed here.
-The configured JSC shell independently requests mixed-case `Winmm` in
+The configured JSC shell independently requested mixed-case `Winmm` in
 `Source/JavaScriptCore/shell/CMakeLists.txt`; adding that exact shell dependency
-to the otherwise successful probe reproduces `cannot find -lWinmm` in
-`r2/shell-library-negative.log`. That is outside this WTF checkpoint.
+to the otherwise successful probe reproduced `cannot find -lWinmm` in
+`r2/shell-library-negative.log`. The later isolated shell-library fix and
+positive link probe are recorded in [JSC-SHELL-LINK.md](JSC-SHELL-LINK.md).
 The existing build also still references the original ICU prefix; a final ME
 link must use the separately verified Win9x ICU prefix. Full engine linking,
 complete import closure and actual IE/ME execution remain required.

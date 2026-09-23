@@ -66,6 +66,8 @@ a pre-Vista synchronization backend. Host contention/wakeup tests pass; actual
 event/scheduler/TLS behavior remains a guest gate. See [LEGACY-SYNC.md](LEGACY-SYNC.md).
 The subsequent complete WTF static archive build succeeds; a real-WTF caller
 links after fixing Windows SDK library dependencies. See [WTF-LINK.md](WTF-LINK.md).
+The JSC shell's WinMM import-library name has a separate reproducible link fix;
+see [JSC-SHELL-LINK.md](JSC-SHELL-LINK.md).
 No `jsc.exe` or engine was produced. See
 [DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the

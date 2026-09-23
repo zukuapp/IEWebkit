@@ -1,0 +1,11 @@
+--- a/Source/JavaScriptCore/shell/CMakeLists.txt
++++ b/Source/JavaScriptCore/shell/CMakeLists.txt
+@@ -14,7 +14,7 @@
+ endif ()
+ 
+ if (WIN32)
+-    list(APPEND jsc_LIBRARIES Winmm)
++    list(APPEND jsc_LIBRARIES winmm)
+ endif ()
+ 
+ if (ENABLE_FUZZILLI)

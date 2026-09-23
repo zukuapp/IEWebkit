@@ -1,0 +1,31 @@
+--- a/source/common/putil.cpp
++++ b/source/common/putil.cpp
+@@ -1803,6 +1803,19 @@
+         return gCorrectedPOSIXLocale;
+     }
+ 
++#if defined(U_IEWEBKIT_WIN9X)
++    // Use ICU's bundled LCID mapping; no Vista locale-name APIs are available.
++    char locale[ULOC_FULLNAME_CAPACITY] = {};
++    int32_t length = uprv_convertToPosix(GetUserDefaultLCID(), locale, sizeof(locale), &status);
++    if (U_SUCCESS(status) && length > 0 && length < static_cast<int32_t>(sizeof(locale))) {
++        correctedPOSIXLocale = uprv_strdup(locale);
++        if (correctedPOSIXLocale) {
++            gCorrectedPOSIXLocale = correctedPOSIXLocale;
++            gCorrectedPOSIXLocaleHeapAllocated = true;
++            ucln_common_registerCleanup(UCLN_COMMON_PUTIL, putil_cleanup);
++        }
++    }
++#else
+     // No cached value, need to determine the current value
+     static WCHAR windowsLocale[LOCALE_NAME_MAX_LENGTH] = {};
+     int length = GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SNAME, windowsLocale, LOCALE_NAME_MAX_LENGTH);
+@@ -1857,6 +1870,8 @@
+             }
+         }
+     }
++
++#endif
+ 
+     // If unable to find a locale we can agree upon, use en-US by default
+     if (gCorrectedPOSIXLocale == nullptr) {

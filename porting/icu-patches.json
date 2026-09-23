@@ -1,0 +1,21 @@
+{
+  "source_commit": "21d1eb0f306e1141c10931e914dfc038c06121da",
+  "patches": [
+    {
+      "path": "source/common/putil.cpp",
+      "patch": "patches/icu-78.3-win9x-default-locale.patch",
+      "before_sha256": "273b2d51249908744815a91004751ab81ac852eeadbdaee0de59c29cf14cb032",
+      "after_sha256": "956909746b3ea05fc242ed2eeb55aebf2580f100972efe95d7b9fc982c62933d",
+      "patch_sha256": "24f74872879328c6045ef4d97318f04bd146e079cce8d3e30590ad1b10d21ae4",
+      "reason": "Use ICU bundled LCID table and GetUserDefaultLCID for Win9x locale detection; preserve Unicode/CLDR processing."
+    },
+    {
+      "path": "source/common/wintz.cpp",
+      "patch": "patches/icu-78.3-win9x-timezone.patch",
+      "before_sha256": "b73efa8f19fb1b01dfe1b97dc34251487df9e30b214d2620f6c6b95bed684eb3",
+      "after_sha256": "eedd32ca0d1df4c995f101fad4ac8a062522d046a5f7e2ef85cb629b87596769",
+      "patch_sha256": "ff450dd960ca8fa5f35ed1442e578688c7d102698c832f806062c5696284b51a",
+      "reason": "Win9x ANSI registry timezone discovery using current ICU windowsZones data; avoid Vista dynamic-timezone APIs and Unicode registry stubs."
+    }
+  ]
+}

@@ -62,7 +62,9 @@ no `jsc.exe` or engine was produced. See [DATE-OFFSET.md](DATE-OFFSET.md).
 
 The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
 unmodified upstream profile uses Windows 7 declarations and must not be treated
-as a Windows ME runtime port. See [ICU.md](ICU.md) for reproducible commands,
+as a Windows ME runtime port. A separate opt-in Win9x dependency profile now
+builds; its expanded native probe passes the ME import audit and the actual
+Korean ME guest smoke (Unicode, collation, locale and timezone). See [ICU.md](ICU.md) for reproducible commands,
 measured compile gates and the linked-binary audit. Do not point the target
 linker at host Linux ICU or use a newer-Windows binary as proof of ME compatibility.
 
@@ -151,7 +153,7 @@ porting evidence:
 | `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
 | `WTF/wtf/StackBounds.cpp` | Unconditional Windows `GetCurrentThreadStackLimits`; ME needs correct main/worker stack bounds including guard-page behavior. |
 | `WTF/wtf/win/FileHandleWin.cpp` | `SetFileInformationByHandle`, modern seeking and Unicode/file paths; adapt using available ME APIs and preserve offsets/error behavior. |
-| `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME query and seasonal conversion behavior remain unverified; see `DATE-OFFSET.md`. |
+| `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME standard-offset query passes; separate seasonal conversion remains unverified. See `DATE-OFFSET.md`. |
 | `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |
 | `WTF/wtf/PlatformJSCOnly.cmake` | Links `synchronization`, DbgHelp and other Windows libraries; a Win9x port must remove/replace unavailable services. |
 | `Source/cmake/OptionsWin.cmake` | Defaults to Skia in this pinned revision; a Cairo branch remains with `USE_SKIA=OFF`. Full WebCore additionally requires curl, HarfBuzz, ICU, JPEG, XML, OpenSSL, PNG, SQLite, zlib, PSL and WebP, plus a port of the Windows view/event layer. |

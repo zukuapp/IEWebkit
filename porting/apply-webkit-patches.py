@@ -17,11 +17,13 @@ def digest(data):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", required=True, type=Path)
+    parser.add_argument("--dependency", choices=("webkit", "icu"), default="webkit")
     args = parser.parse_args()
     source = external_work_dir(args.source)
-    pin = json.loads((HERE / "webkit-source.json").read_text())
-    stamp = json.loads((source / ".iewebkit-hydrated.json").read_text())
-    manifest = json.loads((HERE / "webkit-patches.json").read_text())
+    pin = json.loads((HERE / (args.dependency + "-source.json")).read_text())
+    stamp_name = ".iewebkit-hydrated.json" if args.dependency == "webkit" else ".iewebkit-icu-source.json"
+    stamp = json.loads((source / stamp_name).read_text())
+    manifest = json.loads((HERE / (args.dependency + "-patches.json")).read_text())
     if stamp != pin or manifest["source_commit"] != pin["commit"]:
         raise SystemExit("Source/patch pin mismatch")
     for item in manifest["patches"]:

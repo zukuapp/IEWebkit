@@ -51,5 +51,6 @@ The actual `bmalloc` static target rebuilt successfully with this patch, and
 the actual header compiles in C and C++23. The modern-declaration regression
 build retains SRW imports. Eight porting tests passed at this checkpoint. Its
 next compiler gate was `DateMath.cpp`; subsequent focused work is recorded in
-[DATE-OFFSET.md](DATE-OFFSET.md). ICU retains four missing ME imports. No JSC
+[DATE-OFFSET.md](DATE-OFFSET.md). The baseline ICU had four missing ME imports; later dependency work is recorded
+in [ICU.md](ICU.md). No JSC
 executable or complete engine has been produced.

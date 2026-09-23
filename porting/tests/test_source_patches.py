@@ -40,6 +40,14 @@ class SourcePatchTests(unittest.TestCase):
         self.apply(); self.assertEqual(self.target.read_bytes(), b"new\n")
         self.apply(); self.assertEqual(self.target.read_bytes(), b"new\n")
 
+    def test_icu_dependency_uses_its_own_pin_and_stamp(self):
+        for old, new in [("webkit-source.json", "icu-source.json"), ("webkit-patches.json", "icu-patches.json")]:
+            (self.bundle / old).rename(self.bundle / new)
+        (self.source / ".iewebkit-hydrated.json").rename(self.source / ".iewebkit-icu-source.json")
+        with patch.object(module, "HERE", self.bundle), patch.object(sys, "argv", ["apply", "--dependency", "icu", "--source", str(self.source)]):
+            module.main()
+        self.assertEqual(self.target.read_bytes(), b"new\n")
+
     def test_local_edits_are_preserved(self):
         self.target.write_bytes(b"user change\n")
         with self.assertRaises(SystemExit): self.apply()

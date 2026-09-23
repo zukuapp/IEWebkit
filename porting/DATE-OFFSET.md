@@ -50,8 +50,11 @@ was started for this checkpoint.
 The native `date-offset-me.exe` links and passes the pinned ME import audit;
 SHA-256 is `feb3cc02d3194e60a829252cf8ffd0cfcffe3eef82039cf9e9614aa171da6eb5`.
 It writes `C:\DATEDIAG.LOG` and queries current settings without changing the
-clock or timezone. **It has not executed in the ME guest.** Host mocked tests
-and an import audit do not establish actual OS behavior.
+clock or timezone. The actual Korean Windows ME 4.90/IE5.5 guest returned
+exit 0, standard offset `32400000` ms and API error 0. Native diagnostic
+SHA-256 is `389193a97150dc5fb34ccea563fead763f54cf9637068e251de5ae905828e091`.
+This checks current standard bias; the separate seasonal conversion remains
+unverified. See the joint guest record in [ICU.md](ICU.md).
 
 ## Remaining gates
 
@@ -59,7 +62,8 @@ The compiled DateMath object still calls `FileTimeToSystemTime` and
 `SystemTimeToTzSpecificLocalTime` for its separate DST calculation. The pinned
 ME kernel exports both, but the allocator work already proved that an export
 can be an unimplemented stub. Their actual ME behavior and transition edges
-remain unverified. ICU retains four missing ME imports documented in
+remain unverified. The baseline ICU had four missing ME imports; the later
+opt-in dependency profile and its distinct validation gates are documented in
 [ICU.md](ICU.md). WTF threading, stack bounds and file handling still need their
 Win9x ports. The full build has not resumed beyond this single object, so no
 new downstream compiler failure or JSC executable is claimed.

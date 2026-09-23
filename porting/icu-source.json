@@ -1,0 +1,13 @@
+{
+  "version": "ICU4C 78.3",
+  "tag": "release-78.3",
+  "commit": "21d1eb0f306e1141c10931e914dfc038c06121da",
+  "archive_url": "https://github.com/unicode-org/icu/releases/download/release-78.3/icu4c-78.3-sources.tgz",
+  "archive_sha256": "3a2e7a47604ba702f345878308e6fefeca612ee895cf4a5f222e7955fabfe0c0",
+  "archive_sha512": "04a49455e1489030c520a4bfd2664fa2171e7938d08f2acdbbcb1fda976639fd8b1f0704f2eec89ba59a7b6d118ceaab6ec5a096e40d9085a0895d91ce225245",
+  "published_sums_url": "https://github.com/unicode-org/icu/releases/download/release-78.3/SHASUM512.txt",
+  "published_sums_sha256": "9d2729ced0bc33ebe2de5748c718de73e9db7688c60b0f3b58288efdbd36c964",
+  "archive_root": "icu",
+  "license": "Unicode-3.0; preserve LICENSE and bundled third-party notices.",
+  "profile": "Unmodified x86 compile bootstrap using upstream Windows 7 API declarations; NOT Windows ME runtime compatible."
+}

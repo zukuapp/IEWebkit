@@ -1,0 +1,252 @@
+{
+  "schema_version": 1,
+  "product": "IEWebkit",
+  "profiles": [
+    {
+      "id": "ie55-winme",
+      "ie": "5.5",
+      "os": "winme",
+      "architectures": [
+        "x86"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "win9x-x86",
+      "certifications": []
+    },
+    {
+      "id": "ie6-winme",
+      "ie": "6",
+      "os": "winme",
+      "architectures": [
+        "x86"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "win9x-x86",
+      "certifications": []
+    },
+    {
+      "id": "ie6-winxp-sp3",
+      "ie": "6",
+      "os": "winxp-sp3",
+      "architectures": [
+        "x86"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie6-winxp-x64-sp2",
+      "ie": "6",
+      "os": "winxp-x64-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie7-winxp-sp3",
+      "ie": "7",
+      "os": "winxp-sp3",
+      "architectures": [
+        "x86"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie7-winxp-x64-sp2",
+      "ie": "7",
+      "os": "winxp-x64-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie8-winxp-sp3",
+      "ie": "8",
+      "os": "winxp-sp3",
+      "architectures": [
+        "x86"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie8-winxp-x64-sp2",
+      "ie": "8",
+      "os": "winxp-x64-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic"
+      ],
+      "engine_profile": "nt5",
+      "certifications": []
+    },
+    {
+      "id": "ie7-winvista-sp2",
+      "ie": "7",
+      "os": "winvista-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie8-winvista-sp2",
+      "ie": "8",
+      "os": "winvista-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie9-winvista-sp2",
+      "ie": "9",
+      "os": "winvista-sp2",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie8-win7-sp1",
+      "ie": "8",
+      "os": "win7-sp1",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie9-win7-sp1",
+      "ie": "9",
+      "os": "win7-sp1",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie10-win7-sp1",
+      "ie": "10",
+      "os": "win7-sp1",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected",
+        "enhanced-protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie11-win7-sp1",
+      "ie": "11",
+      "os": "win7-sp1",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected",
+        "enhanced-protected"
+      ],
+      "engine_profile": "nt6",
+      "certifications": []
+    },
+    {
+      "id": "ie10-win8",
+      "ie": "10",
+      "os": "win8",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected",
+        "enhanced-protected"
+      ],
+      "engine_profile": "nt6-appcontainer",
+      "certifications": []
+    },
+    {
+      "id": "ie11-win81",
+      "ie": "11",
+      "os": "win81",
+      "architectures": [
+        "x86",
+        "x64"
+      ],
+      "modes": [
+        "classic",
+        "protected",
+        "enhanced-protected"
+      ],
+      "engine_profile": "nt6-appcontainer",
+      "certifications": []
+    }
+  ]
+}

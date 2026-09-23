@@ -16,13 +16,18 @@ mode with `tools/variants.py`; target existence is not a compatibility pass.
   Fetch dependencies into an external work directory. Audit the **compiled
   target's imports**, including dependencies and CRT. Search results for APIs
   in unused architecture branches are not proof of a target incompatibility.
+  Import/export presence is only a static gate: ME may export a callable stub
+  that returns `ERROR_CALL_NOT_IMPLEMENTED` (the allocator lock hit this).
+  Run a tiny native fixture in the actual guest before relying on an API.
 - Browser embedding: read `include/engine.h` and `host/README.md`. IE remains
   the actual DocObject host with authoritative URL monikers and history.
   Preserve POST and redirect semantics in the protocol handoff. A local launch
   page or a separate browser window cannot prove remote-site integration.
 - Compatibility/release: read `docs/compatibility.md` and `variants.json`.
   Each target needs its own guest evidence and artifact digest. Do not downgrade
-  security mode or silently choose another IE/OS variant.
+  security mode or silently choose another IE/OS variant. Expand the full
+  declaration with `tools/build_host_matrix.py` and inspect linked PE bytes
+  with `tools/verify_host_pe.py`; these host-only checks do not include WebKit.
 
 ## Measured workflow
 
@@ -34,6 +39,12 @@ mode with `tools/variants.py`; target existence is not a compatibility pass.
    support; C_LOOP interpreter bring-up is not full WASM/graphics completion.
 4. Use disjoint parallel ownership for the engine port, IE host and guest tools
    when parallel work is requested. Keep host build outputs outside Git.
+   Keep a sealed guest base, use disposable overlays and no NIC, record the
+   tested executable and returned log hashes, then verify guest shutdown,
+   overlay structure, base hashes and service health. Cirrus currently proves
+   ME DirectDraw 2D only; absent hardware 3D and a shutdown blue screen bar a
+   full graphics or stability claim. See `porting/ALLOCATOR-GUEST.md` and the
+   consuming project's native probe evidence for concrete fixture patterns.
 5. Test actual remote navigation, TLS validation, DOM/JS/layout, Korean input,
    forms, history and teardown on the selected guest. Scope guest tooling to
    the private lab; never publish Windows media, product keys or credentials.

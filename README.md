@@ -27,6 +27,7 @@ servers to embed an OBJECT element. ZUKU-specific API/UI code stays in
 - `include/`: versioned engine ABI.
 - `host/`: engine validation/loader and IE document host integration.
 - `porting/`: pinned upstream source, cross-build tooling and measured API gaps.
+- `network/`: pinned, certificate-validating Windows ME HTTPS dependency probe.
 - `variants.json`: separate IE 5.5, 6, 7, 8, 9, 10 and 11 target profiles.
 - `tools/variants.py`: strict target selection and release eligibility checks.
 - `test/`: host-side checks; guest certification is a separate requirement.

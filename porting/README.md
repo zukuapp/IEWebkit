@@ -129,6 +129,11 @@ complete the Win9x OS abstraction.
   condition backend, with `webkit-2.54.0-legacy-sync-types.patch` for its constexpr
   atomic mutex/queue types. Vista+ retains the existing SRW ABI.
 
+- `webkit-2.54.0-sdk-header-case.patch`: uses canonical `windows.h` spelling
+  for the PathWalker SDK include on case-sensitive cross-build hosts. Both
+  filesystem objects compile; direct import-surface audit passes, with Unicode
+  filesystem behavior still a guest gate. See [SDK-HEADER-CASE.md](SDK-HEADER-CASE.md).
+
 ## Allocator probes
 
 Build tests against the actual patched headers:

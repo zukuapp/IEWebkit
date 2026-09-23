@@ -96,6 +96,14 @@
       "after_sha256": "fb2fee9f450e79b5f0d380c5599f960de391b8422c53f9bd96c494fe5ca9d993",
       "patch_sha256": "a63d9e33b497063628af87d05ba35df63dbd97f3867726523ed0298ed29da1eb",
       "reason": "Constexpr pre-Vista atomic mutex and per-waiter condition queue types; modern SRW ABI retained."
+    },
+    {
+      "path": "Source/WTF/wtf/win/PathWalker.h",
+      "patch": "patches/webkit-2.54.0-sdk-header-case.patch",
+      "before_sha256": "03cbfab2be6b6d456884433debe0bc2ab69ed374d875c64e24b9bac566ba646d",
+      "after_sha256": "8b0c84abc96f369d88d00f7855e84f1605dd6b927230bcbb509e9a210aa1a9b6",
+      "patch_sha256": "82ea8edaad56ccaca552f520ea65545037bc4f0f73eef679a5dbe08d4e10662d",
+      "reason": "Use canonical lowercase Windows SDK header spelling on case-sensitive MinGW cross-build hosts; Windows ABI and runtime behavior unchanged."
     }
   ]
 }

@@ -1,0 +1,17 @@
+--- a/Source/WTF/wtf/PlatformWin.cmake
++++ b/Source/WTF/wtf/PlatformWin.cmake
+@@ -37,8 +37,13 @@
+ )
+ 
+ list(APPEND WTF_LIBRARIES
+-    DbgHelp
++    dbghelp
+     shlwapi
+     synchronization
+     winmm
+ )
++# The SDK synchronization import library can bind Sleep to an API-set DLL.
++# Win9x uses the legacy kernel32/event backend instead.
++if (IEWEBKIT_WIN9X)
++    list(REMOVE_ITEM WTF_LIBRARIES synchronization)
++endif ()

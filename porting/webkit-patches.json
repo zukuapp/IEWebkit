@@ -104,6 +104,22 @@
       "after_sha256": "8b0c84abc96f369d88d00f7855e84f1605dd6b927230bcbb509e9a210aa1a9b6",
       "patch_sha256": "82ea8edaad56ccaca552f520ea65545037bc4f0f73eef679a5dbe08d4e10662d",
       "reason": "Use canonical lowercase Windows SDK header spelling on case-sensitive MinGW cross-build hosts; Windows ABI and runtime behavior unchanged."
+    },
+    {
+      "path": "Source/WTF/wtf/PlatformJSCOnly.cmake",
+      "patch": "patches/webkit-2.54.0-platformjsconly-legacy-sdk-libraries.patch",
+      "before_sha256": "07be2f0d17e7273c298edff660a2920715838f85d347e290a5c092928ca83c48",
+      "after_sha256": "dde6c8dcc941610a6ed6b6ff36ead9508ed523e2e146a9832c6a9cfe435cb4ff",
+      "patch_sha256": "186de1bbfd06bc332fdedcd67fead5af693ed7c389659b74f5d82004acc8b9ba",
+      "reason": "Use canonical dbghelp library spelling; omit synchronization API-set imports only in explicit Win9x profile, retaining the modern dependency list."
+    },
+    {
+      "path": "Source/WTF/wtf/PlatformWin.cmake",
+      "patch": "patches/webkit-2.54.0-platformwin-legacy-sdk-libraries.patch",
+      "before_sha256": "b7429c4b3b6331baafabadc896d7760a466dcb0909a1b3dc4642ef7a23eed53f",
+      "after_sha256": "a23c53691fdcbaed195276d53a4a4e1b4c14a8d3b96cce4fa9c53974cdc6069a",
+      "patch_sha256": "7e8e1c46d9c9aa0ed52d8db370a5d376f34d853c180d238e5433dc54586adbc7",
+      "reason": "Use canonical dbghelp library spelling; omit synchronization API-set imports only in explicit Win9x profile, retaining the modern dependency list."
     }
   ]
 }

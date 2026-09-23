@@ -63,7 +63,10 @@ next explicitly tested object, `StackBounds.cpp`, now compiles after a validated
 legacy metadata fallback. `win/ThreadingWin.cpp` and generic `Threading.cpp` now compile with ME
 declarations after isolating pthread headers, debugger-naming SEH and adding
 a pre-Vista synchronization backend. Host contention/wakeup tests pass; actual
-event/scheduler/TLS behavior remains a guest gate. See [LEGACY-SYNC.md](LEGACY-SYNC.md). No `jsc.exe` or engine was produced. See
+event/scheduler/TLS behavior remains a guest gate. See [LEGACY-SYNC.md](LEGACY-SYNC.md).
+The subsequent complete WTF static archive build succeeds; a real-WTF caller
+links after fixing Windows SDK library dependencies. See [WTF-LINK.md](WTF-LINK.md).
+No `jsc.exe` or engine was produced. See
 [DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
@@ -133,6 +136,11 @@ complete the Win9x OS abstraction.
   for the PathWalker SDK include on case-sensitive cross-build hosts. Both
   filesystem objects compile; direct import-surface audit passes, with Unicode
   filesystem behavior still a guest gate. See [SDK-HEADER-CASE.md](SDK-HEADER-CASE.md).
+
+- The two `*-legacy-sdk-libraries.patch` files use canonical `dbghelp` spelling
+  and omit the SDK synchronization API-set dependency only for explicit Win9x.
+  The complete WTF archive and real-WTF link probes now build; legacy imports
+  pass while modern dependency controls remain unchanged. See [WTF-LINK.md](WTF-LINK.md).
 
 ## Allocator probes
 

@@ -1,0 +1,20 @@
+--- a/Source/WTF/wtf/PlatformJSCOnly.cmake
++++ b/Source/WTF/wtf/PlatformJSCOnly.cmake
+@@ -23,11 +23,16 @@
+         win/Win32Handle.cpp
+     )
+     list(APPEND WTF_LIBRARIES
+-        DbgHelp
++        dbghelp
+         shlwapi
+         synchronization
+         winmm
+     )
++    # The SDK synchronization import library can bind Sleep to an API-set DLL.
++    # Win9x uses the legacy kernel32/event backend instead.
++    if (IEWEBKIT_WIN9X)
++        list(REMOVE_ITEM WTF_LIBRARIES synchronization)
++    endif ()
+     list(APPEND WTF_PUBLIC_HEADERS
+         win/WTFCRTDebug.h
+     )

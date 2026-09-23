@@ -24,5 +24,5 @@ jobs:
           python3 tools/variants.py validate
           python3 -m unittest discover -s test -p 'test_*.py'
           python3 -m unittest discover -s porting/tests -p 'test_*.py'
-      - name: Test native contract and cross-compile IE host
-        run: make -C host test docobject
+      - name: Test native contract and cross-compile IE host and lifecycle harness
+        run: make -C host test docobject lifecycle-test-binary

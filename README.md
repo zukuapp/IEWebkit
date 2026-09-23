@@ -35,7 +35,8 @@ servers to embed an OBJECT element. ZUKU-specific API/UI code stays in
 python3 tools/variants.py validate
 python3 tools/variants.py select --ie 5.5 --os winme --arch x86 --mode classic
 python3 -m unittest discover -s test -p 'test_*.py'
-make -C host test objects
+python3 -m unittest discover -s porting/tests -p 'test_*.py'
+make -C host test docobject lifecycle-test-binary
 ```
 
 Target selection describes development configurations. Adding `--release`
@@ -44,5 +45,8 @@ unverified and release selection correctly fails. No installer should silently
 substitute another browser version, bitness or security mode.
 
 See [porting evidence](porting/README.md) and
-[compatibility policy](docs/compatibility.md). Source archives, Windows media,
+[compatibility policy](docs/compatibility.md). For a specific IE/OS host build,
+use [the variant builder](docs/build-variants.md). The lifecycle harness has
+run in a real Windows ME guest; its scope and evidence are in
+[the host notes](host/README.md). Source archives, Windows media,
 keys, credentials, machine logs and compiled outputs are excluded from Git.

@@ -49,6 +49,7 @@ backing images retained their initial hashes, the writable overlay passed
 
 The actual `bmalloc` static target rebuilt successfully with this patch, and
 the actual header compiles in C and C++23. The modern-declaration regression
-build retains SRW imports. Eight porting tests pass. The full `jsc` build still
-stops at `DateMath.cpp`'s `GetTimeZoneInformationForYear`; ICU also retains four
-missing ME imports. No JSC executable or complete engine has been produced.
+build retains SRW imports. Eight porting tests passed at this checkpoint. Its
+next compiler gate was `DateMath.cpp`; subsequent focused work is recorded in
+[DATE-OFFSET.md](DATE-OFFSET.md). ICU retains four missing ME imports. No JSC
+executable or complete engine has been produced.

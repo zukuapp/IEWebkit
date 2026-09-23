@@ -40,6 +40,14 @@
       "after_sha256": "4ccea57542dc92addf1d4e487d1e61bd2d697cda58e2fab5db07d1164f87cc59",
       "patch_sha256": "a2949183015a9797286023f7a07aca0ab27aee71786178a819949558b3e18f57",
       "reason": "Use standard signed long long suffix for 32-bit GetTickCount wrap correction; value and arithmetic unchanged."
+    },
+    {
+      "patch": "patches/webkit-2.54.0-win9x-standard-timezone.patch",
+      "path": "Source/WTF/wtf/DateMath.cpp",
+      "before_sha256": "65b1066ee8ec153db043d1e2d8967ddb068b9aea84dc6258994aad13e631d9cc",
+      "after_sha256": "7e1eff695bef08a34a3a6cdf845d888d02ae0817fb38a530ea8c9aface6a880a",
+      "patch_sha256": "b56e74f668cb69429548b59b523734030fc92683f22981c88b541e6fba9118ca",
+      "reason": "Use Win9x current timezone settings for standard offset; keep DST separate, honor transition validity, and correct modern BOOL/local-year API semantics."
     }
   ]
 }

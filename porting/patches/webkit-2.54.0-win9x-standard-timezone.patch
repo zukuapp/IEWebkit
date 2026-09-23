@@ -1,0 +1,38 @@
+--- a/Source/WTF/wtf/DateMath.cpp
++++ b/Source/WTF/wtf/DateMath.cpp
+@@ -198,20 +198,23 @@
+ static int32_t calculateUTCOffset()
+ {
+ #if OS(WINDOWS)
+-    TIME_ZONE_INFORMATION timeZoneInformation;
+-    DWORD rc = 0;
+-
+-    SYSTEMTIME systemTime;
+-    ::GetSystemTime(&systemTime);
+-    rc = ::GetTimeZoneInformationForYear(systemTime.wYear, nullptr, &timeZoneInformation);
+-    if (rc == TIME_ZONE_ID_INVALID)
++    TIME_ZONE_INFORMATION timeZoneInformation { };
++#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS <= 0x0490
++    // Win9x exposes only the currently configured rules, not per-year history.
++    if (::GetTimeZoneInformation(&timeZoneInformation) == TIME_ZONE_ID_INVALID)
+         return 0;
+-
++#else
++    SYSTEMTIME localTime;
++    ::GetLocalTime(&localTime);
++    // This API returns BOOL, not a TIME_ZONE_ID_* state, and needs a local year.
++    if (!::GetTimeZoneInformationForYear(localTime.wYear, nullptr, &timeZoneInformation))
++        return 0;
++#endif
++
++    // This is the standard offset. calculateDSTOffset adds the seasonal delta.
++    // Windows ignores StandardBias when no transition dates are configured.
+     int32_t bias = timeZoneInformation.Bias;
+-
+-    if (rc == TIME_ZONE_ID_DAYLIGHT)
+-        bias += timeZoneInformation.DaylightBias;
+-    else if (rc == TIME_ZONE_ID_STANDARD || rc == TIME_ZONE_ID_UNKNOWN)
++    if (timeZoneInformation.StandardDate.wMonth && timeZoneInformation.DaylightDate.wMonth)
+         bias += timeZoneInformation.StandardBias;
+ 
+     return -bias * 60 * 1000;

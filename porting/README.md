@@ -55,8 +55,10 @@ The MinGW32 compiler's C/C++ ABI checks passed. The first configuration stopped
 at missing target ICU. The pinned ICU 78.3 x86 compile bootstrap now builds and
 installs successfully, and JSC configuration completes with those target archives.
 Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
-`libbmalloc.a` and compiles initial WTF files. It stops in `DateMath.cpp` at the
-unavailable `GetTimeZoneInformationForYear` API. No `jsc.exe` or engine was produced.
+`libbmalloc.a` and compiles initial WTF files. The next observed blocker,
+`DateMath.cpp` at `GetTimeZoneInformationForYear`, now passes a focused object
+compile after the standard-timezone patch. The broad build has not resumed;
+no `jsc.exe` or engine was produced. See [DATE-OFFSET.md](DATE-OFFSET.md).
 
 The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
 unmodified upstream profile uses Windows 7 declarations and must not be treated
@@ -89,6 +91,9 @@ those preservation boundaries.
   recovery. Export presence does not prove runtime semantics.
 - `webkit-2.54.0-portable-tick-literal.patch`: replaces the MSVC `I64` literal
   suffix with standard `LL`, preserving the value used for 32-bit tick wrap.
+- `webkit-2.54.0-win9x-standard-timezone.patch`: uses current Win9x timezone
+  settings for the standard offset and corrects Boolean/local-year semantics
+  in the modern Windows path. Seasonal and historical rules remain separate.
 
 The initial system-malloc experiment was rejected by WebKit's Windows allocator
 contract; the bootstrap selects bundled mimalloc instead. These patches do not
@@ -146,7 +151,7 @@ porting evidence:
 | `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
 | `WTF/wtf/StackBounds.cpp` | Unconditional Windows `GetCurrentThreadStackLimits`; ME needs correct main/worker stack bounds including guard-page behavior. |
 | `WTF/wtf/win/FileHandleWin.cpp` | `SetFileInformationByHandle`, modern seeking and Unicode/file paths; adapt using available ME APIs and preserve offsets/error behavior. |
-| `WTF/wtf/DateMath.cpp` | `GetTimeZoneInformationForYear` is the current compile gate. A replacement must preserve timezone/DST semantics, including return-value interpretation; substituting a zero offset is not valid. |
+| `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME query and seasonal conversion behavior remain unverified; see `DATE-OFFSET.md`. |
 | `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |
 | `WTF/wtf/PlatformJSCOnly.cmake` | Links `synchronization`, DbgHelp and other Windows libraries; a Win9x port must remove/replace unavailable services. |
 | `Source/cmake/OptionsWin.cmake` | Defaults to Skia in this pinned revision; a Cairo branch remains with `USE_SKIA=OFF`. Full WebCore additionally requires curl, HarfBuzz, ICU, JPEG, XML, OpenSSL, PNG, SQLite, zlib, PSL and WebP, plus a port of the Windows view/event layer. |

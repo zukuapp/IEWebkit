@@ -3,7 +3,10 @@
 #include "engine_loader.h"
 #if defined(IEWK_SUBSET_LAB)
 #include "../renderer/lab/log.h"
-static inline void iewk_navigation_trace(const char *key, DWORD value) { lab_log(key, value); }
+static inline void iewk_navigation_trace(const char *key, DWORD value) {
+  static LONG remaining = 512;
+  if (InterlockedDecrement(&remaining) >= 0) lab_log(key, value);
+}
 #elif defined(IEWK_NAV_DIAGNOSTIC)
 #include "navigation_trace.h"
 #else
@@ -192,6 +195,16 @@ class Document : public IOleObject,
       return hr;
     if (FAILED(place->GetWindow(&parent)) || !parent)
       return E_FAIL;
+#ifdef IEWK_SUBSET_LAB
+    RECT parent_rect = {0,0,0,0};
+    GetClientRect(parent,&parent_rect);
+    iewk_navigation_trace("Document.parent",reinterpret_cast<ULONG_PTR>(parent));
+    iewk_navigation_trace("Document.parent_visible",IsWindowVisible(parent));
+    iewk_navigation_trace("Document.parent_width",parent_rect.right);
+    iewk_navigation_trace("Document.parent_height",parent_rect.bottom);
+    iewk_navigation_trace("Document.rect_width",rectangle.right-rectangle.left);
+    iewk_navigation_trace("Document.rect_height",rectangle.bottom-rectangle.top);
+#endif
     if (!window) {
       if (!engine.library &&
           iewk_load_engine(module_handle, &engine) != IEWK_OK) {
@@ -212,11 +225,17 @@ class Document : public IOleObject,
         close_view();
         return E_FAIL;
       }
-      place->OnInPlaceActivate();
+      iewk_navigation_trace("Document.OnInPlaceActivate.enter",1);
+      HRESULT activation = place->OnInPlaceActivate();
+      iewk_navigation_trace("Document.OnInPlaceActivate.exit",activation);
     }
+    iewk_navigation_trace("Document.resize.enter",1);
     engine.api->resize(view, 0, 0, rectangle.right - rectangle.left,
                        rectangle.bottom - rectangle.top);
+    iewk_navigation_trace("Document.resize.exit",1);
     ShowWindow(window, SW_SHOW);
+    iewk_navigation_trace("Document.shown_visible",IsWindowVisible(window));
+    iewk_navigation_trace("Document.show.exit",1);
     return S_OK;
   }
 
@@ -448,9 +467,12 @@ public:
     return QueryInterface(IID_IUnknown, reinterpret_cast<void **>(out));
   }
   HRESULT STDMETHODCALLTYPE SetRect(LPRECT value) {
+    iewk_navigation_trace("Document.SetRect.enter",1);
     if (!value)
       return E_POINTER;
     rectangle = *value;
+    iewk_navigation_trace("Document.SetRect.width",rectangle.right-rectangle.left);
+    iewk_navigation_trace("Document.SetRect.height",rectangle.bottom-rectangle.top);
     if (window) {
       MoveWindow(window, rectangle.left, rectangle.top,
                  rectangle.right - rectangle.left,

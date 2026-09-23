@@ -1,5 +1,10 @@
 #include "win32_view.h"
 #include "subset.h"
+#ifdef IEWK_SUBSET_TRACE
+#include "lab/log.h"
+#else
+static inline void lab_log(const char *, DWORD) {}
+#endif
 #include <algorithm>
 #include <cstring>
 #include <map>
@@ -35,9 +40,12 @@ struct View {
   SubsetDocument document;
   std::map<int, HFONT> fonts;
   int scroll;
+  unsigned paint_count, layout_count, layout_depth;
   SubsetLinkCallback link;
   void *context;
-  View() : window(NULL), scroll(0), link(NULL), context(NULL) {}
+  View()
+      : window(NULL), scroll(0), paint_count(0), layout_count(0),
+        layout_depth(0), link(NULL), context(NULL) {}
   ~View() {
     for (auto &entry : fonts)
       DeleteObject(entry.second);
@@ -91,12 +99,29 @@ struct View {
     info.nMax = std::max(0, document.height() - 1);
     info.nPage = rect.bottom;
     info.nPos = scroll;
+    if (layout_count <= 8)
+      lab_log("paint.SetScrollInfo.enter", layout_depth);
     SetScrollInfo(window, SB_VERT, &info, TRUE);
+    if (layout_count <= 8)
+      lab_log("paint.SetScrollInfo.exit", layout_depth);
     InvalidateRect(window, NULL, TRUE);
   }
   bool layout() {
+    ++layout_count;
+    ++layout_depth;
+    struct Depth {
+      unsigned &value;
+      ~Depth() { --value; }
+    } depth = {layout_depth};
+    bool trace = layout_count <= 8;
+    if (trace)
+      lab_log("paint.layout.depth", layout_depth);
     RECT rect;
     GetClientRect(window, &rect);
+    if (trace) {
+      lab_log("paint.layout.width", rect.right);
+      lab_log("paint.layout.height", rect.bottom);
+    }
     if (rect.right < 1)
       return true;
     HDC dc = GetDC(window);
@@ -105,13 +130,32 @@ struct View {
     MeasureContext measure_context = {this, dc};
     bool ok = document.layout(rect.right, measure, &measure_context);
     ReleaseDC(window, dc);
+    if (trace) {
+      lab_log("paint.layout.commands",
+              static_cast<DWORD>(document.paint().size()));
+      lab_log("paint.layout.content_height", document.height());
+    }
     scroll_to(scroll);
+    if (trace)
+      lab_log("paint.layout.exit", ok);
     return ok;
   }
   void paint(HDC dc) {
+    bool trace = ++paint_count <= 4;
+    if (trace) {
+      lab_log("paint.visible", IsWindowVisible(window));
+      RECT clip = {0, 0, 0, 0};
+      lab_log("paint.clip_type", GetClipBox(dc, &clip));
+      lab_log("paint.clip_width", clip.right - clip.left);
+      lab_log("paint.clip_height", clip.bottom - clip.top);
+    }
     RECT client;
     GetClientRect(window, &client);
-    FillRect(dc, &client, static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)));
+    int cleared =
+        FillRect(dc, &client, static_cast<HBRUSH>(GetStockObject(WHITE_BRUSH)));
+    if (trace)
+      lab_log("paint.clear_ok", cleared);
+    unsigned text_ok = 0, text_failed = 0;
     SetBkMode(dc, TRANSPARENT);
     for (const Paint &p : document.paint()) {
       int top = p.y - scroll;
@@ -129,7 +173,10 @@ struct View {
       HGDIOBJ old = SelectObject(dc, font(p.font));
       SetTextColor(dc, rgb(p.color));
       std::string bytes = ansi(p.text);
-      TextOutA(dc, p.x, top, bytes.data(), static_cast<int>(bytes.size()));
+      if (TextOutA(dc, p.x, top, bytes.data(), static_cast<int>(bytes.size())))
+        ++text_ok;
+      else
+        ++text_failed;
       SelectObject(dc, old);
       if (p.underline) {
         HPEN pen = CreatePen(PS_SOLID, 1, rgb(p.color));
@@ -141,6 +188,12 @@ struct View {
           DeleteObject(pen);
         }
       }
+    }
+    if (trace) {
+      lab_log("paint.text_ok", text_ok);
+      lab_log("paint.text_failed", text_failed);
+      lab_log("paint.pixel_1_1", GetPixel(dc, 1, 1));
+      lab_log("paint.exit", paint_count);
     }
   }
 };
@@ -178,13 +231,19 @@ LRESULT procedure_impl(HWND window, UINT message, WPARAM wparam,
     return 1;
   case WM_PAINT: {
     PAINTSTRUCT ps;
+    if (view->paint_count < 4)
+      lab_log("paint.BeginPaint.enter", view->paint_count);
     HDC dc = BeginPaint(window, &ps);
+    if (view->paint_count < 4)
+      lab_log("paint.BeginPaint.dc", reinterpret_cast<ULONG_PTR>(dc));
     try {
       view->paint(dc);
     } catch (const std::exception
                  &) { /* Keep WM_PAINT balanced on allocation failure. */
     }
     EndPaint(window, &ps);
+    if (view->paint_count <= 4)
+      lab_log("paint.EndPaint", view->paint_count);
     return 0;
   }
   case WM_VSCROLL: {

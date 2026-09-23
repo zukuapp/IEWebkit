@@ -42,8 +42,9 @@ output. Exact compiler arguments are retained in external `modern-command.json`.
 The resulting object SHA-256 is
 `7fdb24da432436d8bb1274e20d2fdb04c75e142982354121585695067b2726ca`.
 This is a compile gate, not a Win7 runtime certification. The actual ME object
-retry now fails only at the SRW lock and condition-variable calls; its complete
-object is still not built.
+retry then failed only at SRW lock and condition-variable calls. The subsequent
+[synchronization checkpoint](LEGACY-SYNC.md) compiles the full ME object and
+adds host behavioral evidence; actual guest thread behavior remains unverified.
 
 The static ME naming fixture passes the pinned import audit with zero gaps;
 it imports `OutputDebugStringA` and no `RaiseException`. SHA-256:

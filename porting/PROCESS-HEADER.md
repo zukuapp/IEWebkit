@@ -43,7 +43,7 @@ logic is unchanged and still needs actual target lifetime testing.
 The real `ThreadingWin.cpp` retry no longer reports pthread typedef collisions
 or a redefined `PTHREAD_ONCE_INIT`. It then failed at `__except` and the absent
 SRW/condition-variable calls. The subsequent [naming checkpoint](THREAD-NAME.md)
-removes the SEH compiler error; ME synchronization and the JSC engine remain
-unbuilt.
+removes the SEH compiler error. The later [synchronization checkpoint](LEGACY-SYNC.md)
+compiles ME thread objects; the full JSC engine remains unbuilt.
 External before/after and link logs:
 `/srv/zuku/deploy-work/20260924-process-header/`.

@@ -83,11 +83,19 @@
     },
     {
       "path": "Source/WTF/wtf/win/ThreadingWin.cpp",
-      "patch": "patches/webkit-2.54.0-thread-name-seh.patch",
+      "patch": "patches/webkit-2.54.0-threading-win.patch",
       "before_sha256": "b7069b8757c050c3e3aaf4bcc559f85e251342b7f43e9d833054faeaf35d6db6",
-      "after_sha256": "daf01d64e142430bdf683111e60e6461ed3e3431e4506723c430097b15d1da7d",
-      "patch_sha256": "4d797dce0afc07f562c840b491f1e25be9c6f16dd777c372a8613a43197864c6",
-      "reason": "Keep MSVC debugger naming SEH in compatible compiler branch; use diagnostic output for MinGW without skipping thread initialization."
+      "after_sha256": "d88f66332c0917cf483f1db9cb8e2a948a973f4f7cae491e61e84253012e1579",
+      "patch_sha256": "22316a202d76ad26210c3404b2e79ecc634c16f832ac230cce1cee9195dfce0c",
+      "reason": "Compiler-specific debugger naming plus pre-Vista atomic mutex/per-waiter event conditions; retain modern SRW path."
+    },
+    {
+      "path": "Source/WTF/wtf/ThreadingPrimitives.h",
+      "patch": "patches/webkit-2.54.0-legacy-sync-types.patch",
+      "before_sha256": "715184ed1d2b301d70dd34a31aee757763b637cd9e742379e835dbb52e19e369",
+      "after_sha256": "fb2fee9f450e79b5f0d380c5599f960de391b8422c53f9bd96c494fe5ca9d993",
+      "patch_sha256": "a63d9e33b497063628af87d05ba35df63dbd97f3867726523ed0298ed29da1eb",
+      "reason": "Constexpr pre-Vista atomic mutex and per-waiter condition queue types; modern SRW ABI retained."
     }
   ]
 }

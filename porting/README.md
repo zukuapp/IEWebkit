@@ -60,9 +60,10 @@ Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
 compile after the standard-timezone patch. A later focused continuation compiled
 six more generic WTF objects and the patched Windows file-handle object. The
 next explicitly tested object, `StackBounds.cpp`, now compiles after a validated
-legacy metadata fallback. `win/ThreadingWin.cpp` now passes a modern-declaration object compile; its ME
-compile still fails at SRW/condition-variable APIs after isolating pthread
-headers and the MSVC-only debugger-naming SEH. No `jsc.exe` or engine was produced. See
+legacy metadata fallback. `win/ThreadingWin.cpp` and generic `Threading.cpp` now compile with ME
+declarations after isolating pthread headers, debugger-naming SEH and adding
+a pre-Vista synchronization backend. Host contention/wakeup tests pass; actual
+event/scheduler/TLS behavior remains a guest gate. See [LEGACY-SYNC.md](LEGACY-SYNC.md). No `jsc.exe` or engine was produced. See
 [DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
@@ -120,9 +121,13 @@ complete the Win9x OS abstraction.
   process query declaration from libpas pthread aliases, retaining C linkage,
   architecture configuration and visibility. See [PROCESS-HEADER.md](PROCESS-HEADER.md).
 
-- `webkit-2.54.0-thread-name-seh.patch`: preserves MSVC debugger naming and
+- `webkit-2.54.0-threading-win.patch`: preserves MSVC debugger naming and
   uses a diagnostic-only fallback on MinGW, without skipping required thread
   initialization. See [THREAD-NAME.md](THREAD-NAME.md) for compiler/runtime gates.
+
+- The cumulative Windows-thread patch also adds the pre-Vista per-waiter event
+  condition backend, with `webkit-2.54.0-legacy-sync-types.patch` for its constexpr
+  atomic mutex/queue types. Vista+ retains the existing SRW ABI.
 
 ## Allocator probes
 
@@ -173,7 +178,7 @@ porting evidence:
 | --- | --- |
 | `Source/cmake/OptionsJSCOnly.cmake` | Forces `_WIN32_WINNT=0x0A00` / Windows 10 declarations; needs a genuine Win9x platform selection, not just an extra compiler flag. |
 | `Source/cmake/OptionsCommon.cmake` | C++23; compiler can target x86 but its CRT and thread-local destruction support must also run on ME. |
-| `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
+| `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | Pre-Vista mutex/condition objects compile and pass host race tests; actual ME event/scheduler behavior and C++ `thread_local` cleanup remain unverified. |
 | `WTF/wtf/StackBounds.cpp` | Pre-Windows8 metadata fallback compiles and passes host cases. Main/worker growth, FS/TIB and collector behavior remain actual guest gates. |
 | `WTF/wtf/win/FileHandleWin.cpp` | Pre-Vista truncation fallback now compiles and passes boundary tests. Unicode/file-path and actual filesystem behavior remain guest gates. |
 | `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME standard-offset query passes; separate seasonal conversion remains unverified. See `DATE-OFFSET.md`. |

@@ -1,0 +1,205 @@
+--- a/Source/WTF/wtf/win/ThreadingWin.cpp
++++ b/Source/WTF/wtf/win/ThreadingWin.cpp
+@@ -111,6 +111,7 @@
+ {
+ }
+ 
++#if COMPILER(MSVC)
+ // MS_VC_EXCEPTION, THREADNAME_INFO, and setThreadNameInternal all come from <http://msdn.microsoft.com/en-us/library/xcb2z8hs.aspx>.
+ static const DWORD MS_VC_EXCEPTION = 0x406D1388;
+ 
+@@ -122,9 +123,11 @@
+     DWORD dwFlags; // reserved for future use, must be zero
+ } THREADNAME_INFO;
+ #pragma pack(pop)
++#endif
+ 
+ void Thread::initializeCurrentThreadInternal(const char* szThreadName)
+ {
++#if COMPILER(MSVC)
+     THREADNAME_INFO info;
+     info.dwType = 0x1000;
+     info.szName = Thread::normalizeThreadName(szThreadName);
+@@ -134,6 +137,11 @@
+     __try {
+         RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), reinterpret_cast<ULONG_PTR*>(&info));
+     } __except(EXCEPTION_CONTINUE_EXECUTION) { }
++#else
++    // MinGW cannot catch MSVC SEH. Emit a diagnostic instead of raising an
++    // unhandled naming exception; this does not set a debugger thread label.
++    OutputDebugStringA(Thread::normalizeThreadName(szThreadName));
++#endif
+ 
+     initializeCurrentThreadEvenIfNonWTFCreated();
+ }
+@@ -327,6 +335,99 @@
+     }
+ }
+ 
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++static bool legacyMutexTryLock(PlatformMutex& mutex)
++{
++    DWORD expected = 0;
++    return mutex.owner.compare_exchange_strong(expected, GetCurrentThreadId(), std::memory_order_acquire, std::memory_order_relaxed);
++}
++
++static void legacyMutexLock(PlatformMutex& mutex)
++{
++    while (!legacyMutexTryLock(mutex))
++        Sleep(1);
++}
++
++static void legacyMutexUnlock(PlatformMutex& mutex)
++{
++    RELEASE_ASSERT(mutex.owner.load(std::memory_order_relaxed) == GetCurrentThreadId());
++    mutex.owner.store(0, std::memory_order_release);
++}
++
++struct WindowsLegacyConditionWaiter {
++    HANDLE event;
++    WindowsLegacyConditionWaiter* next { nullptr };
++    bool signaled { false };
++};
++
++static void legacyConditionPopAndSignal(PlatformCondition& condition)
++{
++    auto* waiter = condition.first;
++    if (!waiter)
++        return;
++    condition.first = waiter->next;
++    if (!condition.first)
++        condition.last = nullptr;
++    waiter->signaled = true;
++    // Keep the queue lock until SetEvent completes: a timeout must not close
++    // or recycle this handle between removing the waiter and signaling it.
++    RELEASE_ASSERT(SetEvent(waiter->event));
++}
++
++static bool legacyConditionWait(PlatformCondition& condition, Mutex& mutex, DWORD interval)
++{
++    WindowsLegacyConditionWaiter waiter { CreateEventA(nullptr, FALSE, FALSE, nullptr) };
++    RELEASE_ASSERT(waiter.event);
++    legacyMutexLock(condition.queueLock);
++    if (condition.last)
++        condition.last->next = &waiter;
++    else
++        condition.first = &waiter;
++    condition.last = &waiter;
++    ++condition.activeWaiters;
++    // Register before releasing the predicate mutex. Signalers cannot miss
++    // this waiter even when they run before WaitForSingleObject starts.
++    mutex.unlock();
++    legacyMutexUnlock(condition.queueLock);
++
++    DWORD result = WaitForSingleObject(waiter.event, interval);
++    legacyMutexLock(condition.queueLock);
++    if (!waiter.signaled) {
++        WindowsLegacyConditionWaiter* previous = nullptr;
++        auto* current = condition.first;
++        while (current && current != &waiter) {
++            previous = current;
++            current = current->next;
++        }
++        RELEASE_ASSERT(current == &waiter);
++        if (previous)
++            previous->next = waiter.next;
++        else
++            condition.first = waiter.next;
++        if (condition.last == &waiter)
++            condition.last = previous;
++    }
++    --condition.activeWaiters;
++    bool signaled = waiter.signaled;
++    legacyMutexUnlock(condition.queueLock);
++    RELEASE_ASSERT(CloseHandle(waiter.event));
++    mutex.lock();
++    RELEASE_ASSERT(result == WAIT_OBJECT_0 || result == WAIT_TIMEOUT);
++    RELEASE_ASSERT(result != WAIT_OBJECT_0 || signaled);
++    // On a timeout/signal race, queue-lock order decides the winner. A signal
++    // already assigned to this waiter is never consumed by a later waiter.
++    return signaled;
++}
++
++Mutex::~Mutex()
++{
++    RELEASE_ASSERT(!m_mutex.owner.load(std::memory_order_relaxed));
++}
++
++void Mutex::lock() { legacyMutexLock(m_mutex); }
++bool Mutex::tryLock() { return legacyMutexTryLock(m_mutex); }
++void Mutex::unlock() { legacyMutexUnlock(m_mutex); }
++#else
+ Mutex::~Mutex() = default;
+ 
+ void Mutex::lock()
+@@ -343,6 +444,8 @@
+ {
+     ReleaseSRWLockExclusive(&m_mutex);
+ }
++
++#endif
+ 
+ // Returns an interval in milliseconds suitable for passing to one of the Win32 wait functions (e.g., ::WaitForSingleObject).
+ static DWORD absoluteTimeToWaitTimeoutInterval(WallTime absoluteTime)
+@@ -366,11 +469,23 @@
+     return static_cast<DWORD>((absoluteTime - currentTime).milliseconds());
+ }
+ 
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++ThreadCondition::~ThreadCondition()
++{
++    RELEASE_ASSERT(!m_condition.activeWaiters && !m_condition.first && !m_condition.last);
++    RELEASE_ASSERT(!m_condition.queueLock.owner.load(std::memory_order_relaxed));
++}
++#else
+ ThreadCondition::~ThreadCondition() = default;
++#endif
+ 
+ void ThreadCondition::wait(Mutex& mutex)
+ {
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    legacyConditionWait(m_condition, mutex, INFINITE);
++#else
+     SleepConditionVariableSRW(&m_condition, &mutex.impl(), INFINITE, 0);
++#endif
+ }
+ 
+ bool ThreadCondition::timedWait(Mutex& mutex, WallTime absoluteTime)
+@@ -383,20 +498,37 @@
+         return false;
+     }
+ 
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    return legacyConditionWait(m_condition, mutex, interval);
++#else
+     if (SleepConditionVariableSRW(&m_condition, &mutex.impl(), interval, 0))
+         return true;
+     ASSERT(GetLastError() == ERROR_TIMEOUT);
+     return false;
++#endif
+ }
+ 
+ void ThreadCondition::signal()
+ {
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    legacyMutexLock(m_condition.queueLock);
++    legacyConditionPopAndSignal(m_condition);
++    legacyMutexUnlock(m_condition.queueLock);
++#else
+     WakeConditionVariable(&m_condition);
++#endif
+ }
+ 
+ void ThreadCondition::broadcast()
+ {
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    legacyMutexLock(m_condition.queueLock);
++    while (m_condition.first)
++        legacyConditionPopAndSignal(m_condition);
++    legacyMutexUnlock(m_condition.queueLock);
++#else
+     WakeAllConditionVariable(&m_condition);
++#endif
+ }
+ 
+ void Thread::yield()

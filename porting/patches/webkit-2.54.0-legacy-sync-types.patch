@@ -1,0 +1,57 @@
+--- a/Source/WTF/wtf/ThreadingPrimitives.h
++++ b/Source/WTF/wtf/ThreadingPrimitives.h
+@@ -37,6 +37,7 @@
+ #include <wtf/WallTime.h>
+ 
+ #if OS(WINDOWS)
++#include <atomic>
+ #include <windows.h>
+ #endif
+ 
+@@ -63,8 +64,22 @@
+ #elif OS(WINDOWS)
+ using ThreadIdentifier = uint32_t;
+ using PlatformThreadHandle = HANDLE;
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++struct PlatformMutex {
++    static_assert(std::atomic<DWORD>::is_always_lock_free);
++    std::atomic<DWORD> owner { 0 };
++};
++struct WindowsLegacyConditionWaiter;
++struct PlatformCondition {
++    PlatformMutex queueLock;
++    WindowsLegacyConditionWaiter* first { nullptr };
++    WindowsLegacyConditionWaiter* last { nullptr };
++    unsigned activeWaiters { 0 };
++};
++#else
+ using PlatformMutex = SRWLOCK;
+ using PlatformCondition = CONDITION_VARIABLE;
++#endif
+ using ThreadSpecificKey = DWORD;
+ #else
+ #error "Not supported platform"
+@@ -87,7 +102,11 @@
+ #if USE(PTHREADS)
+     PlatformMutex m_mutex = PTHREAD_MUTEX_INITIALIZER;
+ #elif OS(WINDOWS)
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    PlatformMutex m_mutex;
++#else
+     PlatformMutex m_mutex = SRWLOCK_INIT;
++#endif
+ #endif
+ };
+ 
+@@ -110,7 +129,11 @@
+ #if USE(PTHREADS)
+     PlatformCondition m_condition = PTHREAD_COND_INITIALIZER;
+ #elif OS(WINDOWS)
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0600
++    PlatformCondition m_condition;
++#else
+     PlatformCondition m_condition = CONDITION_VARIABLE_INIT;
++#endif
+ #endif
+ };
+ 

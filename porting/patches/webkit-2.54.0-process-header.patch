@@ -1,0 +1,23 @@
+--- a/Source/bmalloc/libpas/src/libpas/pas_process.h
++++ b/Source/bmalloc/libpas/src/libpas/pas_process.h
+@@ -26,14 +26,16 @@
+ #ifndef PAS_PROCESS_H
+ #define PAS_PROCESS_H
+ 
+-#include "pas_utils.h"
++#include "pas_config_prefix.h"
++#include "pas_utils_prefix.h"
++#include <stdbool.h>
+ 
+-PAS_BEGIN_EXTERN_C;
++__PAS_BEGIN_EXTERN_C;
+ 
+ /* Returns true when the current process is in the middle of shutting down.
+    This API is meaningful only on Windows, otherwise always returning false. */
+-PAS_API bool pas_process_is_shutting_down(void);
++__PAS_API bool pas_process_is_shutting_down(void);
+ 
+-PAS_END_EXTERN_C;
++__PAS_END_EXTERN_C;
+ 
+ #endif /* PAS_PROCESS_H */

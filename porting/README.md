@@ -115,6 +115,10 @@ complete the Win9x OS abstraction.
   allocation metadata on pre-Windows8 builds, preserving the modern API. Exact
   host fixtures and actual object compile pass; FS/TIB guest behavior is pending.
 
+- `webkit-2.54.0-process-header.patch` and `process-platform.patch`: isolate the
+  process query declaration from libpas pthread aliases, retaining C linkage,
+  architecture configuration and visibility. See [PROCESS-HEADER.md](PROCESS-HEADER.md).
+
 ## Allocator probes
 
 Build tests against the actual patched headers:

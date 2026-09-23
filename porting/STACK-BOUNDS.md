@@ -64,6 +64,8 @@ it writes `C:\STACKDIAG.LOG`. Exit 50 means a boundary release assertion,
 thread creation or completion failed. No full engine readiness is claimed.
 
 External logs: `/srv/zuku/deploy-work/20260924-stack-bounds/`.
-The next focused compile, `win/ThreadingWin.cpp`, fails at MinGW/pas_thread pthread type collisions, MSVC SEH syntax and
-missing SRW/condition-variable APIs. It needs a separate thread backend and
+The next focused compile, `win/ThreadingWin.cpp`, initially failed at MinGW/pas_thread pthread type collisions, MSVC SEH syntax
+and missing SRW/condition-variable APIs. The subsequent
+[process-header checkpoint](PROCESS-HEADER.md) removes the typedef collisions;
+SEH and synchronization remain. It needs a separate thread backend and
 actual contention/wakeup/timeout tests; this stack patch does not implement it.

@@ -64,6 +64,22 @@
       "after_sha256": "872a54107ed478ab403de03c1bd31226e82afd66aa83332dcf4ed375a402fe04",
       "patch_sha256": "66d9f1ff77cf61f2e2c78ea9966f2107c983e9e8b39c9df508f79d7fbf37c63f",
       "reason": "Pre-Windows8 validated TIB/VirtualQuery stack allocation bounds, preserving modern API and failing closed on inconsistent metadata."
+    },
+    {
+      "path": "Source/bmalloc/libpas/src/libpas/pas_process.h",
+      "patch": "patches/webkit-2.54.0-process-header.patch",
+      "before_sha256": "3ad7e6c1518effb7c2da2ec233003750d5b16227f3dc67230897e3d20c4b90d3",
+      "after_sha256": "43667cb26cf589a75154d3c01e795fc95e7793a1d3a81a3c82ee952de3457796",
+      "patch_sha256": "f2f72cfae1928d2f429d5eb5511356d6109ef590d0a8232121da3b9d17de19a9",
+      "reason": "Keep process query C ABI and visibility without leaking libpas pthread aliases into C++ consumers."
+    },
+    {
+      "path": "Source/bmalloc/libpas/src/libpas/pas_process.c",
+      "patch": "patches/webkit-2.54.0-process-platform.patch",
+      "before_sha256": "3ab4e8ff25f0f1998dd835c0433f4541e7e1f26f18f56d533b47f696d29f3419",
+      "after_sha256": "419460998726d1adc1c3b4d0b0a957a207ab01863b166dbd0b7400b23607c3d8",
+      "patch_sha256": "e0e53a2f13c43b8f60096a41a64e1b05dd5b1b5eac9dfaaa218cf135df0162c2",
+      "reason": "Keep process query C ABI and visibility without leaking libpas pthread aliases into C++ consumers."
     }
   ]
 }

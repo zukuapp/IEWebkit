@@ -1,0 +1,10 @@
+--- a/Source/bmalloc/libpas/src/libpas/pas_process.c
++++ b/Source/bmalloc/libpas/src/libpas/pas_process.c
+@@ -24,6 +24,7 @@
+  */
+ 
+ #include "pas_process.h"
++#include "pas_platform.h"
+ 
+ #if PAS_OS(WINDOWS)
+ 

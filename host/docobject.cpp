@@ -108,7 +108,8 @@ class Document : public IOleObject,
                                 size_t method_length, const void *body,
                                 size_t body_length) {
     Document *self = static_cast<Document *>(context);
-    if (!self->site || !iewk_web_url(target, length) || body_length > 1048576)
+    if (!self->site || !iewk_web_url(target, length) || body_length > 1048576 ||
+        (body_length && !body))
       return;
     if (!((method_length == 3 && !std::memcmp(method, "GET", 3) &&
            body_length == 0) ||
@@ -260,12 +261,21 @@ public:
     return n;
   }
   HRESULT STDMETHODCALLTYPE SetClientSite(IOleClientSite *next) {
+    if (next == site)
+      return S_OK;
+    AddRef(); // Site callbacks may release the container's object reference.
     if (next)
       next->AddRef();
     close_view();
+    if (place) {
+      place->OnInPlaceDeactivate();
+      place->Release();
+      place = NULL;
+    }
     if (site)
       site->Release();
     site = next;
+    Release();
     return S_OK;
   }
   HRESULT STDMETHODCALLTYPE GetClientSite(IOleClientSite **out) {
@@ -385,11 +395,18 @@ public:
     return S_OK;
   }
   HRESULT STDMETHODCALLTYPE SetInPlaceSite(IOleInPlaceSite *next) {
+    if (next == place)
+      return S_OK;
+    AddRef();
     if (next)
       next->AddRef();
-    if (place)
+    close_view();
+    if (place) {
+      place->OnInPlaceDeactivate();
       place->Release();
+    }
     place = next;
+    Release();
     return S_OK;
   }
   HRESULT STDMETHODCALLTYPE GetInPlaceSite(IOleInPlaceSite **out) {

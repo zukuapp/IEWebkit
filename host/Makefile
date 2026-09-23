@@ -16,3 +16,6 @@ objects:
 docobject: objects
 	$(WINCXX) -std=c++11 $(CFLAGS) $(TARGET) -c docobject.cpp -o build/docobject.o
 	$(WINCXX) -shared -static -static-libgcc -static-libstdc++ -Wl,--kill-at -o build/iewebkit-host.dll build/docobject.o build/engine_loader.o build/engine_contract.o -ladvapi32 -luser32 -lole32 -loleaut32 -luuid -lurlmon
+.PHONY: lifecycle-test-binary
+lifecycle-test-binary: objects
+	$(WINCXX) -std=c++11 $(CFLAGS) $(TARGET) -o build/HOSTTEST.EXE ../test/docobject_lifecycle_test.cpp build/engine_loader.o build/engine_contract.o -static -static-libgcc -static-libstdc++ -ladvapi32 -luser32 -lole32 -loleaut32 -luuid -lurlmon

@@ -47,3 +47,27 @@ shows a real DocObject embedding another renderer in IE, with explicit navigatio
 and history integration. Its [registration](https://chromium.googlesource.com/chromium/src/+/23.0.1271.56/chrome_frame/chrome_active_document.rgs)
 uses a dedicated MIME type. These are architectural references; no Chrome Frame
 code is incorporated into this host.
+
+## Windows ME diagnostic result (2026-09-23)
+
+The lifecycle harness executed in Windows ME 4.90.3000 with IE 5.50.4134.0100.
+It exercised the actual `Document` implementation's site replacement, COM
+reference ownership and null-rectangle checks. The guest-produced log was
+retrieved over a private COM1 QA channel and read:
+
+```text
+PASS DocObject site replacement, reference lifetime and null rect checks
+```
+
+- Harness SHA-256: `e7fdabb0e0a2905709d17f79c394623be63bb5d8b68200c00d47e4f298af383f`
+- Result SHA-256: `2a17ce37fa5feb5b4115a56346018b2bf5c0f7e678b19dd4b6c69c047d7ce307`
+- All 125 imported functions were present in the pinned installed ME system DLLs.
+- Display: standard VGA, 640×480. This was a COM diagnostic, not Cirrus,
+  WebKit rendering, browser navigation, TLS or full port acceptance.
+
+The serial channel separately passed guest ping/version, exact CP949 fixture
+transfer, malformed CRC rejection, outside-directory rejection, disallowed
+command rejection and recovery after those failures. The original ME image had
+no serial driver because its installation used no serial device; installing the
+standard communications-port driver at IRQ 4, I/O 03F8–03FF and restarting made
+COM1 available. Keep that driver step in future sealed QA images.

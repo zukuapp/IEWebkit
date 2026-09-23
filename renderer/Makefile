@@ -23,3 +23,10 @@ sanitize:
 	mkdir -p build
 	$(CXX) -std=c++11 -g -O1 -Wall -Wextra -Werror -fsanitize=address,undefined -fno-omit-frame-pointer subset.cpp test.cpp -o build/subset_sanitize
 	ASAN_OPTIONS=detect_leaks=1 build/subset_sanitize
+
+.PHONY: lab
+lab: win32
+	$(WINCXX) $(CXXFLAGS) $(TARGET) -DIEWK_SUBSET_LAB -I ../include -shared -static -static-libgcc -static-libstdc++ -Wl,--kill-at,--major-subsystem-version,4,--minor-subsystem-version,0 ../host/docobject.cpp lab/bridge.cpp -o build/SUBHOST.DLL -ladvapi32 -luser32 -lole32 -loleaut32 -luuid -lurlmon
+	$(WINCXX) $(CXXFLAGS) $(TARGET) -mwindows -static -static-libgcc -static-libstdc++ -Wl,--major-subsystem-version,4,--minor-subsystem-version,0 lab/install.cpp -o build/SUBSETUP.EXE -luser32 -lole32 -loleaut32 -luuid
+	cp build/iewk-subset.dll build/SUBSET.DLL
+	python3 -c 'from pathlib import Path; Path("build/DEMO.IWK").write_bytes(b"IEWKSUBSET/1\n"+Path("example.html").read_bytes())'

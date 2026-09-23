@@ -1,7 +1,10 @@
 /* Site-neutral Active Document host. The URL moniker is the browser binding;
    an installed WebKit provider owns the document, scripting, TLS and pixels. */
 #include "engine_loader.h"
-#ifdef IEWK_NAV_DIAGNOSTIC
+#if defined(IEWK_SUBSET_LAB)
+#include "../renderer/lab/log.h"
+static inline void iewk_navigation_trace(const char *key, DWORD value) { lab_log(key, value); }
+#elif defined(IEWK_NAV_DIAGNOSTIC)
 #include "navigation_trace.h"
 #else
 static inline void iewk_navigation_trace(const char *, DWORD) {}
@@ -18,18 +21,27 @@ static inline void iewk_navigation_trace(const char *, DWORD) {}
 #include <windows.h>
 static HINSTANCE module_handle;
 static LONG objects, locks;
+#ifdef IEWK_SUBSET_LAB
+/* Explicit fixed-file lab build only; no WebKit provider or remote origin. */
+#include "../renderer/lab/policy.h"
+#else
 static const CLSID CLSID_IEWKDocument = {
     0x9b07cc1a,
     0xe5d2,
     0x434c,
     {0x95, 0xe8, 0xdf, 0x2f, 0xa0, 0x69, 0x4a, 0x13}};
 static const char *CLASS_ID = "{9B07CC1A-E5D2-434C-95E8-DF2FA0694A13}";
+static const char *MIME_KEY = "MIME\\Database\\Content Type\\application/x-iewebkit-document";
+#endif
 class Document : public IOleObject,
                  public IOleDocument,
                  public IOleDocumentView,
                  public IOleInPlaceObject,
                  public IOleInPlaceActiveObject,
                  public IPersistMoniker,
+#ifdef IEWK_SUBSET_LAB
+                 public IPersistFile,
+#endif
                  public IOleCommandTarget {
   LONG refs;
   IOleClientSite *site;
@@ -254,6 +266,10 @@ public:
     else if (IsEqualIID(id, IID_IPersist) ||
              IsEqualIID(id, IID_IPersistMoniker))
       *out = static_cast<IPersistMoniker *>(this);
+#ifdef IEWK_SUBSET_LAB
+    else if (IsEqualIID(id, IID_IPersistFile))
+      *out = static_cast<IPersistFile *>(this);
+#endif
     else if (IsEqualIID(id, IID_IOleCommandTarget))
       *out = static_cast<IOleCommandTarget *>(this);
     if (!*out)
@@ -389,7 +405,10 @@ public:
   HRESULT STDMETHODCALLTYPE GetDocMiscStatus(DWORD *out) {
     if (!out)
       return E_POINTER;
-    *out = DOCMISC_CANTOPENEDIT | DOCMISC_NOFILESUPPORT;
+    *out = DOCMISC_CANTOPENEDIT;
+#ifndef IEWK_SUBSET_LAB
+    *out |= DOCMISC_NOFILESUPPORT;
+#endif
     return S_OK;
   }
   HRESULT STDMETHODCALLTYPE EnumViews(IEnumOleDocumentViews **enumerator,
@@ -540,6 +559,29 @@ public:
     iewk_navigation_trace("Document.remote_https", !std::strncmp(url,"https://",8));
     return view ? (navigate_engine() == IEWK_OK ? S_OK : E_FAIL) : S_OK;
   }
+#ifdef IEWK_SUBSET_LAB
+  HRESULT STDMETHODCALLTYPE Load(LPCOLESTR path, DWORD) {
+    if (!path) return E_INVALIDARG;
+    IMoniker *source = NULL; IBindCtx *binding = NULL;
+    HRESULT hr = CreateFileMoniker(path, &source);
+    if (SUCCEEDED(hr)) hr = CreateBindCtx(0, &binding);
+    if (SUCCEEDED(hr)) hr = Load(FALSE, source, binding, 0);
+    if (binding) binding->Release();
+    if (source) source->Release();
+    return hr;
+  }
+  HRESULT STDMETHODCALLTYPE Save(LPCOLESTR, BOOL) { return E_NOTIMPL; }
+  HRESULT STDMETHODCALLTYPE SaveCompleted(LPCOLESTR) { return S_OK; }
+  HRESULT STDMETHODCALLTYPE GetCurFile(LPOLESTR *out) {
+    if (!out) return E_POINTER;
+    *out = NULL;
+    const WCHAR path[] = L"C:\\IEWKSUB\\DEMO.IWKSUBSET";
+    *out = static_cast<LPOLESTR>(CoTaskMemAlloc(sizeof path));
+    if (!*out) return E_OUTOFMEMORY;
+    std::memcpy(*out,path,sizeof path);
+    return S_OK;
+  }
+#endif
   HRESULT STDMETHODCALLTYPE Save(IMoniker *, IBindCtx *, BOOL) {
     return E_NOTIMPL;
   }
@@ -669,16 +711,27 @@ extern "C" __declspec(dllexport) HRESULT WINAPI DllRegisterServer() {
   std::snprintf(path, sizeof path, "CLSID\\%s\\DocObject", CLASS_ID);
   if (reg(path, NULL, "0"))
     return E_FAIL;
-  return reg("MIME\\Database\\Content Type\\application/x-iewebkit-document",
-             "CLSID", CLASS_ID)
+#ifdef IEWK_SUBSET_LAB
+  if (reg(".iwksubset", NULL, "IEWebkit.SubsetLab") ||
+      reg(".iwksubset", "Content Type", "application/x-iewebkit-subset-lab") ||
+      reg("IEWebkit.SubsetLab\\CLSID", NULL, CLASS_ID) ||
+      reg("IEWebkit.SubsetLab\\BrowseInPlace", NULL, "") ||
+      reg(MIME_KEY, "Extension", ".iwksubset"))
+    return E_FAIL;
+#endif
+  return reg(MIME_KEY, "CLSID", CLASS_ID)
              ? E_FAIL
              : S_OK;
 }
 extern "C" __declspec(dllexport) HRESULT WINAPI DllUnregisterServer() {
   char path[256];
-  RegDeleteKeyA(
-      HKEY_CLASSES_ROOT,
-      "MIME\\Database\\Content Type\\application/x-iewebkit-document");
+#ifdef IEWK_SUBSET_LAB
+  RegDeleteKeyA(HKEY_CLASSES_ROOT, ".iwksubset");
+  RegDeleteKeyA(HKEY_CLASSES_ROOT, "IEWebkit.SubsetLab\\CLSID");
+  RegDeleteKeyA(HKEY_CLASSES_ROOT, "IEWebkit.SubsetLab\\BrowseInPlace");
+  RegDeleteKeyA(HKEY_CLASSES_ROOT, "IEWebkit.SubsetLab");
+#endif
+  RegDeleteKeyA(HKEY_CLASSES_ROOT, MIME_KEY);
   std::snprintf(path, sizeof path, "CLSID\\%s\\DocObject", CLASS_ID);
   RegDeleteKeyA(HKEY_CLASSES_ROOT, path);
   std::snprintf(path, sizeof path, "CLSID\\%s\\InprocServer32", CLASS_ID);

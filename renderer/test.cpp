@@ -1,3 +1,4 @@
+#include "lab/reference.h"
 #include "subset.h"
 #include <cassert>
 #include <iostream>
@@ -24,6 +25,15 @@ static SubsetDocument document(const std::string &html, int width = 320) {
 }
 static int bad_measure(void *, const Font &, const std::string &) { return -1; }
 int main() {
+  assert(lab_reference("file:///C:/IEWKSUB/DEMO.IWKSUBSET", 33));
+  assert(lab_reference("c:\\iewksub\\demo.iwksubset", 25));
+  for (const std::string rejected :
+       {"https://www.zuzunza.com/", "file:///C:/WINDOWS/SYSTEM.INI",
+        "file://server/share/DEMO.IWKSUBSET",
+        "file:///C:/IEWKSUB/DEMO.IWKSUBSET?x",
+        "file:///C:/IEWKSUB/../DEMO.IWKSUBSET"})
+    assert(!lab_reference(rejected.data(), rejected.size()));
+  assert(!lab_reference(NULL, 0));
   SubsetDocument doc =
       document("<h1>Heading</h1><p>Hello <strong>world</strong></p>");
   assert(visible(doc) == "HeadingHello world");

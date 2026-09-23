@@ -22,3 +22,10 @@ extern "C" __declspec(dllexport) BOOL WINAPI IEWKSubsetAppend(
 extern "C" __declspec(dllexport) void WINAPI IEWKSubsetReset(HWND child) {
   iewk::reset_subset_html(child);
 }
+/* Call outside DllMain, after all child windows have been destroyed and before
+   releasing the last library reference. Registered DLL classes outlive unload.
+ */
+extern "C" __declspec(dllexport) BOOL WINAPI IEWKSubsetPrepareUnload() {
+  return UnregisterClassA("IEWebkitSubsetChildV1", module) ||
+         GetLastError() == ERROR_CLASS_DOES_NOT_EXIST;
+}

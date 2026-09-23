@@ -12,7 +12,9 @@ make -C renderer test sanitize win32 preview
 ```
 
 `build/iewk-subset.dll` is a static-runtime x86 DLL with subsystem 4.0. Its native
-exports are `IEWKSubsetCreate`, `IEWKSubsetAppend`, and `IEWKSubsetReset`. The first
+exports are `IEWKSubsetCreate`, `IEWKSubsetAppend`, `IEWKSubsetReset`, and
+`IEWKSubsetPrepareUnload`. Call the last after destroying all children, before
+releasing the final DLL reference, to unregister its window class. The first
 creates a `WS_CHILD` view in a caller-provided window on the caller's UI thread;
 there is no desktop browser window, URL bar, network connection, or script bridge.
 A DocObject embedder must provide IE's actual in-place parent, own DLL lifetime

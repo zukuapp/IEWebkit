@@ -29,9 +29,9 @@
       "patch": "patches/webkit-2.54.0-win9x-mimalloc-lock.patch",
       "path": "Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h",
       "before_sha256": "6e6c79c07c9b919b56bcbb401f24ab62c80efadc33f1e6b5d52f20c04dfb35d5",
-      "after_sha256": "d7c3b178e23ed09da1294d7ddc053879a883c0ce9d409717056341e5bc3ea0fb",
-      "patch_sha256": "9259b534cfb31a2809ddba47b8e0e4611e7e989df9e38f291fbaddae3556cf43",
-      "reason": "Select bundled Critical Section implementation for explicit Win9x declarations; keep SRW behavior elsewhere. ME behavioral validation remains required."
+      "after_sha256": "1ace19f337a29d1e064bf1791db4cd2a5c480c99cc0be24d6297a52b1b75e394",
+      "patch_sha256": "a63c000279a43722e89499f942151f59ed5e36ee4b7699939b8e7d3f90197bc5",
+      "reason": "Implement Win9x recursive owner-CAS allocator lock with acquire/release ordering and yielding wait; retain modern SRW path. Guest behavior is a separate gate."
     },
     {
       "patch": "patches/webkit-2.54.0-portable-tick-literal.patch",

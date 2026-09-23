@@ -1,12 +1,51 @@
 --- a/Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h
 +++ b/Source/bmalloc/mimalloc/mimalloc/include/mimalloc/atomic.h
-@@ -443,7 +443,8 @@
+@@ -443,7 +443,47 @@
  
  #if defined(_WIN32)
  
 -#if 1
-+// Win9x has no SRW API; use the existing in-process critical section path.
-+#if !defined(_WIN32_WINDOWS) || _WIN32_WINDOWS > 0x0490
++#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS <= 0x0490
++// ME exports TryEnterCriticalSection as an unimplemented stub. Keep this
++// allocator lock independent of heap allocation and unavailable NT services.
++// The owner word publishes protected writes with acquire/release ordering;
++// recursion is accessed only by the current owner. Zero initialization is valid.
++typedef struct mi_win9x_lock_s {
++  _Atomic(uintptr_t) owner;
++  uintptr_t recursion;
++} mi_lock_t;
++
++static inline bool mi_lock_try_acquire(mi_lock_t* lock) {
++  const uintptr_t self = (uintptr_t)GetCurrentThreadId();
++  uintptr_t expected = 0;
++  if (mi_atomic_cas_strong_acq_rel(&lock->owner, &expected, self)) {
++    lock->recursion = 1;
++    return true;
++  }
++  if (expected != self) return false;
++  // Retain the recursive contract of the Windows critical-section fallback.
++  if (lock->recursion == UINTPTR_MAX) return false;
++  lock->recursion++;
++  return true;
++}
++static inline void mi_lock_acquire(mi_lock_t* lock) {
++  // Sleep(1) lets the owner run even when the waiter has a higher priority.
++  // This bootstrap favors compatibility over contention latency; it is not FIFO.
++  while (!mi_lock_try_acquire(lock)) Sleep(1);
++}
++static inline void mi_lock_release(mi_lock_t* lock) {
++  if (--lock->recursion == 0)
++    mi_atomic_store_release(&lock->owner, (uintptr_t)0);
++}
++static inline void mi_lock_init(mi_lock_t* lock) {
++  lock->recursion = 0;
++  mi_atomic_store_relaxed(&lock->owner, (uintptr_t)0);
++}
++static inline void mi_lock_done(mi_lock_t* lock) {
++  (void)(lock);
++}
++
++#elif 1
  #define mi_lock_t  SRWLOCK   // slim reader-writer lock
  
  static inline bool mi_lock_try_acquire(mi_lock_t* lock) {

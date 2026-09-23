@@ -81,9 +81,12 @@ those preservation boundaries.
 - `webkit-2.54.0-gcc-x86-pair.patch`: packs two 32-bit pointers into a 64-bit
   integer on GCC x86, with pointer-width shifts. The 64-bit GCC representation
   remains 128 bits, and compiler atomic operations are retained.
-- `webkit-2.54.0-win9x-mimalloc-lock.patch`: selects mimalloc's existing Critical
-  Section implementation for explicit Win9x declarations. Other Windows builds
-  retain SRW locks. Export presence does not prove ME lock semantics.
+- `webkit-2.54.0-win9x-mimalloc-lock.patch`: adds an atomic owner/recursion lock
+  for explicit Win9x declarations. Try-lock uses one acquire/release CAS, unlock
+  publishes a release store, and blocking contention sleeps for one millisecond.
+  Other Windows builds retain SRW locks. It allocates no handles or heap memory;
+  it does not provide FIFO fairness, priority inheritance or abandoned-owner
+  recovery. Export presence does not prove runtime semantics.
 - `webkit-2.54.0-portable-tick-literal.patch`: replaces the MSVC `I64` literal
   suffix with standard `LL`, preserving the value used for 32-bit tick wrap.
 
@@ -112,6 +115,22 @@ script does **not** execute Windows binaries or certify the ME guest.
 handoff, 100,000 contended increments and teardown. Guest evidence must include
 the exact executable digest, exit code and output; exported ME API stubs can
 still fail these behavioral tests.
+
+The first actual ME run failed: the pair probe exited 4 at thread creation and
+the lock probe exited 1 at its initial try-lock. The revised probes supply
+non-null `CreateThread` thread-ID outputs, as required by Win9x. They write
+native file telemetry to `C:\PAIRDIAG.LOG` and `C:\LOCKDIAG.LOG`, independently
+of console redirection. This fixture correction does not resolve or excuse the
+separate initial try-lock failure; its immediate API error is recorded for
+diagnosis. In the actual ME rerun, the revised pair probe exited 0 and the lock
+probe still exited 1. Native telemetry confirmed `TryEnterCriticalSection`
+returns error 120 (`ERROR_CALL_NOT_IMPLEMENTED`) on the tested ME guest. The
+Critical Section branch was therefore replaced by the Win9x atomic owner lock
+described above. Its revised guest probe adds recursive try/blocking acquisition
+and verifies that partial recursive release cannot hand ownership to another
+thread. Both revised probes passed in the actual standard-VGA ME guest; see
+[the allocator guest record](ALLOCATOR-GUEST.md). This verifies the tested lock
+contract, not full mimalloc allocation behavior or JSC execution.
 
 
 ## Concrete OS abstraction seams

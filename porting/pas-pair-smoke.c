@@ -3,6 +3,7 @@
 #include <stdio.h>
 #ifdef _WIN32
 #include <windows.h>
+#include "probe-telemetry.h"
 #else
 #include <pthread.h>
 #endif
@@ -29,7 +30,7 @@ static DWORD WINAPI worker(LPVOID unused) { (void)unused; work(); return 0; }
 static void *worker(void *unused) { (void)unused; work(); return NULL; }
 #endif
 
-int main(void) {
+static int run_probe(void) {
     uintptr_t high = (uintptr_t)~(uintptr_t)0;
     pas_pair initial = pas_pair_create(0, high);
     if (pas_pair_low(initial) != 0 || pas_pair_high(initial) != high) return 1;
@@ -38,8 +39,16 @@ int main(void) {
     pas_pair rejected = pas_compare_and_swap_pair_strong(&shared_pair, pas_pair_create(1, 1), 0);
     if (pas_pair_low(rejected) != 0 || pas_pair_high(rejected) != high) return 3;
 #ifdef _WIN32
-    HANDLE threads[2] = {CreateThread(NULL, 0, worker, NULL, 0, NULL), CreateThread(NULL, 0, worker, NULL, 0, NULL)};
-    if (!threads[0] || !threads[1]) return 4;
+    DWORD thread_ids[2];
+    HANDLE threads[2];
+    for (unsigned i = 0; i < 2; ++i) {
+        SetLastError(0);
+        threads[i] = CreateThread(NULL, 0, worker, NULL, 0, &thread_ids[i]);
+        probe_log("thread_index", i);
+        probe_log("CreateThread.error", GetLastError());
+        if (!threads[i]) return 4;
+        probe_log("thread_id", thread_ids[i]);
+    }
 #else
     pthread_t threads[2];
     if (pthread_create(&threads[0], NULL, worker, NULL) || pthread_create(&threads[1], NULL, worker, NULL)) return 4;
@@ -58,4 +67,13 @@ int main(void) {
     if (pas_pair_low(final) != 50000 || pas_pair_high(final) != (uintptr_t)~(uintptr_t)50000) return 7;
     puts("PAS pair: layout, roundtrip, failed CAS, concurrent CAS/load/store passed");
     return 0;
+}
+
+int main(void) {
+#ifdef _WIN32
+    probe_open("C:\\PAIRDIAG.LOG");
+    return probe_finish(run_probe());
+#else
+    return run_probe();
+#endif
 }

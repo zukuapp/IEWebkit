@@ -22,6 +22,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR arguments, int) {
                                   "C:\\IEWKSUB\\DEMO.IWKSUBSET"};
     for (int i = 0; i < 3; i++) {
       std::strcpy(base + 1, files[i]);
+      DWORD attributes = GetFileAttributesA(destinations[i]);
+      if (attributes != INVALID_FILE_ATTRIBUTES &&
+          (attributes & FILE_ATTRIBUTE_READONLY) &&
+          !SetFileAttributesA(destinations[i],
+                              attributes & ~FILE_ATTRIBUTE_READONLY)) {
+        lab_log("install.clear_readonly_error", GetLastError());
+        return 3;
+      }
       if (!CopyFileA(source, destinations[i], FALSE)) {
         lab_log("install.copy_error", GetLastError());
         return 3;
@@ -58,10 +66,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR arguments, int) {
   lab_log("install.IE_create", hr);
   if (SUCCEEDED(hr)) {
     VARIANT uri;
+    VARIANT missing;
     VariantInit(&uri);
+    VariantInit(&missing);
     uri.vt = VT_BSTR;
     uri.bstrVal = SysAllocString(L"file:///C:/IEWKSUB/DEMO.IWKSUBSET");
-    hr = uri.bstrVal ? browser->Navigate2(&uri, NULL, NULL, NULL, NULL)
+    // IE 5.5's out-of-process proxy rejects null optional VARIANT pointers.
+    missing.vt = VT_ERROR;
+    missing.scode = DISP_E_PARAMNOTFOUND;
+    hr = uri.bstrVal ? browser->Navigate2(&uri, &missing, &missing,
+                                          &missing, &missing)
                      : E_OUTOFMEMORY;
     lab_log("install.IE_navigate", hr);
     browser->put_Visible(VARIANT_TRUE);

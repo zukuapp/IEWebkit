@@ -1,0 +1,24 @@
+--- a/providers/implementations/rands/seeding/rand_win.c
++++ b/providers/implementations/rands/seeding/rand_win.c
+@@ -44,7 +44,20 @@
+ /* The W entry point is exported but returns ERROR_CALL_NOT_IMPLEMENTED on
+  * Windows ME. Keep modern Windows on the upstream Unicode path. */
+ #if defined(IEWK_WIN9X)
+-#define IEWK_CRYPT_ACQUIRE CryptAcquireContextA
++/* Windows ME's CSPs reject CRYPT_SILENT with NTE_BAD_FLAGS. Retry only that
++ * error without the unsupported flag; CRYPT_VERIFYCONTEXT and a successful
++ * CryptGenRandom remain mandatory before any entropy is credited. */
++static BOOL iewk_win9x_crypt_acquire(HCRYPTPROV *provider, LPCSTR container,
++                                    LPCSTR name, DWORD type, DWORD flags)
++{
++    if (CryptAcquireContextA(provider, container, name, type, flags))
++        return TRUE;
++    if ((flags & CRYPT_SILENT) == 0 || GetLastError() != NTE_BAD_FLAGS)
++        return FALSE;
++    return CryptAcquireContextA(provider, container, name, type,
++                                flags & ~CRYPT_SILENT);
++}
++#define IEWK_CRYPT_ACQUIRE iewk_win9x_crypt_acquire
+ #define INTEL_DEF_PROV "Intel Hardware Cryptographic Service Provider"
+ #else
+ #define IEWK_CRYPT_ACQUIRE CryptAcquireContextW

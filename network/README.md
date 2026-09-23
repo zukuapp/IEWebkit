@@ -26,8 +26,13 @@ objects. Both patches are selected explicitly with `IEWK_WIN9X`; other Windows
 builds retain upstream behavior. The ME entropy patch uses
 `CryptAcquireContextA` instead of the wide entry point still linked in R16
 after the R15 guest's not-implemented failure. The precise failing call in R15
-was not traced. Modern Windows retains upstream's wide call. The probe still
-requires OpenSSL's normal random-seeding success.
+was not traced. ME's CryptoAPI providers also reject `CRYPT_SILENT` with
+`NTE_BAD_FLAGS`; the Win9x patch retries only that error without the
+unsupported flag. It keeps `CRYPT_VERIFYCONTEXT` and credits entropy only
+after `CryptGenRandom` succeeds. Modern Windows retains upstream's wide call
+and flags. [Microsoft's CryptoAPI reference](https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/nf-wincrypt-cryptacquirecontexta)
+defines `NTE_BAD_FLAGS` and recommends `CRYPT_VERIFYCONTEXT` when persisted keys
+are unnecessary.
 
 ```
 ./network/build-winme-tls-probe.sh \
@@ -132,8 +137,8 @@ child exit zero while the retrieved `TLSCTX.LOG` reported
 `libctx_new_failed`; an older stage log was also present. The R13 run is not
 accepted as a constructor pass. Future rounds must use unique log names and
 bind the staged executable hash to the retrieved logs. Neither the TLS
-offline test nor public Cloudflare HTTPS is accepted yet. The current ME lab
-has no proven working NIC for the public probe.
+offline test nor public Cloudflare HTTPS was established by R13. The current
+ME lab has no proven working NIC for the public probe.
 
 The R14 unique-media guest run did establish `OSSL_LIB_CTX_new/free` with
 matching `TLSCTX14.LOG`, constructor stage logs and runner exit zero. It did
@@ -145,6 +150,38 @@ The R15 ME offline log failed at client context construction with Windows error
 the CAPI engine. Its exact binaries passed the pinned ME import audit and its
 source passed host positive, wrong-host and untrusted-CA checks. R17 still
 imports `CertOpenSystemStoreW` through the optional system-store provider; the
-offline probe loads an explicit PEM CA file instead. The R17 ME handshake and
-random-seeding behavior remain unverified until its unique ISO runs in the
-guest.
+offline probe loads an explicit PEM CA file instead. The actual R17 ME run
+launched the pinned diagnostic, but all three cases failed in `SSL_CTX_new` with
+`ERR_R_RAND_LIB`; it is **not** a TLS pass. `TLSOFF17.LOG` recorded Windows error
+`0x80090019` from the final Intel CSP fallback, which obscured the first failed
+provider call.
+
+The separate R18 ME CryptoAPI diagnostic enumerated six installed providers.
+Every provider rejected `CRYPT_VERIFYCONTEXT | CRYPT_SILENT` with
+`NTE_BAD_FLAGS` (`0x80090009`). The default provider accepted
+`CRYPT_VERIFYCONTEXT` alone and generated 32 random bytes through
+`CryptGenRandom`; the diagnostic records only success, not those bytes. Its
+source is `tls_csp_diag.c` and the pinned guest log is retained outside Git.
+For another CSP survey, compile that source with the same WinME target defines
+used by `build-winme-tls-probe.sh`, link `-ladvapi32`, run the pinned PE import
+audit, and stage it as `D:\\ZUKUDIAG.EXE` with the private serial QA helper.
+
+The clean R19 build includes the narrow `NTE_BAD_FLAGS` retry and passed the
+real Windows ME offline gate. Its first guest run rejected the valid fixture
+with X.509 verify code 9 (certificate not yet valid), while still rejecting
+the wrong hostname (62) and unrelated CA (20). The guest's Date/Time UI showed
+the Seoul GMT+09 timezone but displayed the host's UTC hour as its local hour;
+the guest's effective UTC was nine hours behind. In the disposable overlay,
+setting local date/time to the actual Seoul time, 2026-09-24 02:50, allowed the
+unmodified 2026-09-23 15:54 UTC test certificate to validate. The rerun logged
+TLS 1.3 with verify 0 for the valid hostname, 62 for the wrong hostname and 20
+for the unrelated CA, with
+`RESULT valid=1 invalid_rejected=1 untrusted_rejected=1`. The fixed guest
+runner also recorded child exit zero.
+The exact read-only ISO SHA-256 is
+`324766ec07784131e46775fc4d218265099ae408345955a6ecf3e1f34f495a0a`;
+the corrected-clock guest log SHA-256 is
+`d7cff844944078d4a33e03965e119a3bfbc3d579f157bf6b9f8a2e7e45c9674f`.
+This proves the OpenSSL dependency in an offline ME process; WebCore loading,
+public Cloudflare HTTPS and IE-hosted rendering still require separate guest
+tests.

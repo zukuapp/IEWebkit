@@ -43,6 +43,8 @@ patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-thread-backend.patch
   >> "$work_root/patch.log"
 patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-ansi.patch" \
   >> "$work_root/patch.log"
+patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-silent.patch" \
+  >> "$work_root/patch.log"
 perl Configure mingw \
   --cross-compile-prefix=i686-w64-mingw32- \
   --prefix="$work_root/install" \
@@ -132,6 +134,7 @@ sha256sum "$source_archive" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-critical-section.patch" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-thread-backend.patch" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-ansi.patch" \
+  "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-silent.patch" \
   "$repo_root/network/tls_offline.c" \
   "$repo_root/network/tls_guest_runner.c" \
   "$work_root/qa-log-suffix.txt" \

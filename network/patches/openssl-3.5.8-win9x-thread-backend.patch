@@ -1,0 +1,25 @@
+--- a/include/internal/thread_arch.h
++++ b/include/internal/thread_arch.h
+@@ -21,6 +21,10 @@
+ #define OPENSSL_THREADS_POSIX
+ #elif defined(OPENSSL_THREADS) && defined(OPENSSL_SYS_VMS)
+ #define OPENSSL_THREADS_POSIX
++/* Windows 9x/ME has Win32 mutexes and semaphores but predates XP. */
++#elif defined(OPENSSL_THREADS) && defined(OPENSSL_SYS_WINDOWS) && defined(IEWK_WIN9X)
++#define OPENSSL_THREADS_WINNT
++#define OPENSSL_THREADS_WINNT_LEGACY
+ #elif defined(OPENSSL_THREADS) && defined(OPENSSL_SYS_WINDOWS) && defined(_WIN32_WINNT)
+ #if _WIN32_WINNT >= 0x0600
+ #define OPENSSL_THREADS_WINNT
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -182,6 +182,9 @@
+ 
+ void ossl_rcu_lock_free(CRYPTO_RCU_LOCK *lock)
+ {
++    /* Error cleanup in ossl_ht_new() can pass NULL if RCU setup fails. */
++    if (lock == NULL)
++        return;
+     CRYPTO_THREAD_lock_free(lock->rw_lock);
+     OPENSSL_free(lock->qp_group);
+     ossl_crypto_condvar_free(&lock->alloc_signal);

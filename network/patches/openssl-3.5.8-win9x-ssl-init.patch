@@ -1,0 +1,66 @@
+--- a/ssl/ssl_init.c
++++ b/ssl/ssl_init.c
+@@ -17,12 +17,33 @@
+ #include "internal/thread_once.h"
+ #include "internal/rio_notifier.h" /* for ossl_wsa_cleanup() */
+ 
++/* Opt-in ME guest trace; excluded from production builds. */
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++# include <windows.h>
++static void iewk_ssl_diag(const char *message, DWORD length)
++{
++    DWORD written;
++    HANDLE file = CreateFileA("C:\\ZUKUQA\\SSLSTEP.LOG", GENERIC_WRITE,
++                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
++                              OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++    if (file == INVALID_HANDLE_VALUE)
++        return;
++    SetFilePointer(file, 0, NULL, FILE_END);
++    WriteFile(file, message, length, &written, NULL);
++    CloseHandle(file);
++}
++# define IEWK_SSL_DIAG(message) iewk_ssl_diag(message, (DWORD)(sizeof(message) - 1))
++#else
++# define IEWK_SSL_DIAG(message) ((void)0)
++#endif
++
+ static int stopped;
+ 
+ static CRYPTO_ONCE ssl_base = CRYPTO_ONCE_STATIC_INIT;
+ static int ssl_base_inited = 0;
+ DEFINE_RUN_ONCE_STATIC(ossl_init_ssl_base)
+ {
++    IEWK_SSL_DIAG("BASE_ENTER\r\n");
+ #ifndef OPENSSL_NO_COMP
+     OSSL_TRACE(INIT, "ossl_init_ssl_base: "
+                      "SSL_COMP_get_compression_methods()\n");
+@@ -30,9 +51,13 @@
+      * This will initialise the built-in compression algorithms. The value
+      * returned is a STACK_OF(SSL_COMP), but that can be discarded safely
+      */
++    IEWK_SSL_DIAG("BEFORE_COMP\r\n");
+     SSL_COMP_get_compression_methods();
++    IEWK_SSL_DIAG("AFTER_COMP\r\n");
+ #endif
++    IEWK_SSL_DIAG("BEFORE_SORT\r\n");
+     ssl_sort_cipher_list();
++    IEWK_SSL_DIAG("AFTER_SORT\r\n");
+     OSSL_TRACE(INIT, "ossl_init_ssl_base: SSL_add_ssl_module()\n");
+     ssl_base_inited = 1;
+     return 1;
+@@ -67,11 +92,15 @@
+         opts |= OPENSSL_INIT_LOAD_CONFIG;
+ #endif
+ 
++    IEWK_SSL_DIAG("BEFORE_CRYPTO\r\n");
+     if (!OPENSSL_init_crypto(opts, settings))
+         return 0;
++    IEWK_SSL_DIAG("AFTER_CRYPTO\r\n");
+ 
++    IEWK_SSL_DIAG("BEFORE_ONCE\r\n");
+     if (!RUN_ONCE(&ssl_base, ossl_init_ssl_base))
+         return 0;
++    IEWK_SSL_DIAG("AFTER_ONCE\r\n");
+ 
+     return 1;
+ }

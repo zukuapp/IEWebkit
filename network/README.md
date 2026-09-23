@@ -11,21 +11,42 @@ published SHA-256 is
 `a8f84a39918ec6415ce765d9b429d313ba97b8143169c172e734b9514464f5b2`.
 The build script requires that exact archive and keeps source, licenses, build
 objects and binaries outside this repository. The static x86 MinGW profile uses
-`no-pinshared` because `GetModuleHandleExW` is absent from Windows ME. It does
-not disable certificate verification, hostname matching or SNI.
+`no-pinshared` because `GetModuleHandleExW` is absent from Windows ME. It uses
+`no-comp` to omit obsolete TLS compression. Neither setting disables
+certificate verification, hostname matching or SNI.
+
+The pinned local OpenSSL patch switches its internal reader/writer lock to
+`InitializeCriticalSection` on Win9x. The spin-count entry point exists in the
+ME export table but returned failure in the actual guest, so static import
+success alone missed this dependency. A second patch selects OpenSSL's real
+legacy Win32 mutex and condition-variable backend. With `_WIN32_WINNT=0x0400`,
+upstream selected `OPENSSL_THREADS_NONE` while its RCU code still required those
+objects. Both patches are selected explicitly with `IEWK_WIN9X`; other Windows
+builds retain upstream behavior.
 
 ```
-./network/build-winme-tls-probe.sh /path/openssl-3.5.8.tar.gz /external/work
-python3 porting/audit-pe-imports.py \
-  --binary /external/work/tls-smoke.exe \
-  --dll-dir /path/to/extracted/checksum-pinned/ME/SYSTEM \
-  --baseline /path/to/ME-dll-hashes.json \
-  --output /external/work/me-imports.json
+./network/build-winme-tls-probe.sh \
+  /path/openssl-3.5.8.tar.gz /external/new-work \
+  /path/to/extracted/checksum-pinned/ME/SYSTEM \
+  /path/to/ME-dll-hashes.json
 ```
+
+The third and fourth arguments are optional as a pair. When provided, the
+script audits all five linked PE files and fails on a missing import or DLL
+hash mismatch. Results are `*-imports.json` in the work directory. The
+two-argument form leaves import auditing pending. Every run needs a new work
+directory; the script refuses an existing extracted source tree. It checks
+the compiled `no-comp` setting and that the Win32 object, rather than the
+no-threads object, defines mutex and condition-variable functions.
+`SHA256SUMS` records the source archive, production patches and executables.
+The internal stage trace patches (`ssl-init`, `libctx-diag`, `namemap-diag`,
+`cv-diag`) are opt-in investigation tools and are not applied by the normal
+build. Instrumented and normal binaries have different
+hashes; the final exact bytes need their own guest result.
 
 The probe accepts a public DNS host, explicit PEM CA bundle and output log
-path. Defaults are `www.zuzunza.com`, `C:\\ZUKUQA\\cacert.pem` and
-`C:\\ZUKUQA\\TLS.LOG`. Its request has no cookies or credentials. It requires
+path. Defaults are `www.zuzunza.com`, `C:\ZUKUQA\cacert.pem` and
+`C:\ZUKUQA\TLS.LOG`. Its request has no cookies or credentials. It requires
 TLS 1.2 or newer, SNI, a trusted chain, and a matching DNS name, then records
 the HTTP status. A status such as 403 can still demonstrate validated TLS;
 it does not prove the website rendered. CA bytes and hash belong in the guest
@@ -33,8 +54,10 @@ test evidence and later installer manifest; do not embed a stale system store
 or silently suppress failures when the ME clock or CA bundle is wrong.
 
 Passing the import audit means only that a linked PE names functions present
-in the selected ME DLLs. A guest run with actual network access is needed to
-establish DNS, TCP, crypto initialization, handshake and CA validation. Once
+in the selected ME DLLs. The exported spin-count API failed at runtime in ME,
+so import compatibility is a separate gate. A guest run with actual network
+access is needed to establish DNS, TCP, crypto initialization, handshake and
+CA validation. Once
 that succeeds, WebCore's curl network backend still needs a Windows ME port
 and its own request, redirect, cookie, cache and credential boundary tests.
 
@@ -42,19 +65,42 @@ and its own request, redirect, cookie, cache and credential boundary tests.
 
 `tls-offline.exe` runs a TLS handshake through an in-memory BIO pair. The server
 uses a **disposable test-only** certificate for `iewebkit.invalid`. The client
-trusts only the matching test CA, then repeats with a wrong hostname and must
-reject it with `X509_V_ERR_HOSTNAME_MISMATCH`. It does not use guest networking or
+trusts only the matching test CA, then repeats with a wrong hostname and an
+unrelated CA; both must be rejected. It does not use guest networking or
 prove that a Cloudflare HTTPS page loads. Generate fixture keys outside Git:
 
 ```
 ./network/generate-offline-fixture.sh /external/fixture
 ```
 
-Stage `ca.pem`, `server.pem` and `server.key` on the guest test CD as `CA.PEM`,
-`SERVER.PEM` and `SERVER.KEY`. The key is a disposable test fixture, never a
-production credential. Record its hash and exclude the key from screenshots
-and public artifacts. Run `D:\\TLSOFF.EXE` without arguments; it writes
-`C:\\ZUKUQA\\TLSOFF.LOG` and exits zero only when both tests pass. The current
-build's binary and fixture hashes must be recorded before comparing guest
-output. File dates and the VM clock can affect certificate validity; do not
-turn off time checks to make a test pass.
+Stage these files at the root of a read-only guest test CD:
+
+| Host file | Guest path |
+| --- | --- |
+| `tls-offline.exe` | `D:\TLSOFF.EXE` |
+| `tls-runner.exe` | `D:\TLSRUN.EXE` |
+| fixture `ca.pem` | `D:\CA.PEM` |
+| fixture `otherca.pem` | `D:\OTHERCA.PEM` |
+| fixture `server.pem` | `D:\SERVER.PEM` |
+| fixture `server.key` | `D:\SERVER.KEY` |
+
+The key is a disposable test fixture, never a production credential. Record
+each staged file's SHA-256 and exclude the key from screenshots and public
+artifacts. Run `D:\TLSRUN.EXE` without arguments. The fixed 60-second runner
+records the child exit code in `C:\ZUKUQA\TLSRUN.LOG`; the child writes
+`C:\ZUKUQA\TLSOFF.LOG` and exits zero only when all three tests pass. File
+dates and the VM clock can affect certificate validity; do not turn off time
+checks to make a test pass.
+
+For the constructor probe, stage `tls-libctx-diag.exe` as `D:\TLSOFF.EXE`
+beside the same runner. Read `C:\ZUKUQA\TLSCTX.LOG` and `TLSRUN.LOG` after
+execution. A zero runner exit only means that this specific constructor probe
+succeeded; it does not mean the certificate handshake passed.
+
+The 2026-09-23 R13 run produced conflicting evidence: `TLSRUN.LOG` recorded
+child exit zero while the retrieved `TLSCTX.LOG` reported
+`libctx_new_failed`; an older stage log was also present. The R13 run is not
+accepted as a constructor pass. Future rounds must use unique log names and
+bind the staged executable hash to the retrieved logs. Neither the TLS
+offline test nor public Cloudflare HTTPS is accepted yet. The current ME lab
+has no proven working NIC for the public probe.

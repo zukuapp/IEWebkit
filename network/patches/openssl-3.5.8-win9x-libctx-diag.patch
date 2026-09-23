@@ -1,0 +1,232 @@
+--- a/crypto/context.c
++++ b/crypto/context.c
+@@ -19,6 +19,26 @@
+ #include "crypto/decoder.h"
+ #include "crypto/context.h"
+ 
++/* Opt-in Windows ME library-context construction trace. */
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++# include <windows.h>
++static void iewk_ctx_diag(const char *message, DWORD length)
++{
++    DWORD written;
++    HANDLE file = CreateFileA("C:\\ZUKUQA\\CTXNEW.LOG", GENERIC_WRITE,
++                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
++                              OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++    if (file == INVALID_HANDLE_VALUE)
++        return;
++    SetFilePointer(file, 0, NULL, FILE_END);
++    WriteFile(file, message, length, &written, NULL);
++    CloseHandle(file);
++}
++# define IEWK_CTX_DIAG(message) iewk_ctx_diag(message, (DWORD)(sizeof(message) - 1))
++#else
++# define IEWK_CTX_DIAG(message) ((void)0)
++#endif
++
+ struct ossl_lib_ctx_st {
+     CRYPTO_RWLOCK *lock;
+     OSSL_EX_DATA_GLOBAL global;
+@@ -91,20 +111,25 @@
+ static int context_init(OSSL_LIB_CTX *ctx)
+ {
+     int exdata_done = 0;
+-
++    IEWK_CTX_DIAG("CTX_ENTER\r\n");
++
++    IEWK_CTX_DIAG("BEFORE_RCU_TLS\r\n");
+     if (!CRYPTO_THREAD_init_local(&ctx->rcu_local_key, NULL))
+         return 0;
+ 
++    IEWK_CTX_DIAG("BEFORE_LOCK\r\n");
+     ctx->lock = CRYPTO_THREAD_lock_new();
+     if (ctx->lock == NULL)
+         goto err;
+ 
+     /* Initialize ex_data. */
++    IEWK_CTX_DIAG("BEFORE_EXDATA\r\n");
+     if (!ossl_do_ex_data_init(ctx))
+         goto err;
+     exdata_done = 1;
+ 
+     /* P2. We want evp_method_store to be cleaned up before the provider store */
++    IEWK_CTX_DIAG("BEFORE_EVP_METHOD_STORE\r\n");
+     ctx->evp_method_store = ossl_method_store_new(ctx);
+     if (ctx->evp_method_store == NULL)
+         goto err;
+@@ -112,12 +137,14 @@
+ 
+ #ifndef FIPS_MODULE
+     /* P2. Must be freed before the provider store is freed */
++    IEWK_CTX_DIAG("BEFORE_PROVIDER_CONF\r\n");
+     ctx->provider_conf = ossl_prov_conf_ctx_new(ctx);
+     if (ctx->provider_conf == NULL)
+         goto err;
+ #endif
+ 
+     /* P2. */
++    IEWK_CTX_DIAG("BEFORE_DRBG\r\n");
+     ctx->drbg = ossl_rand_ctx_new(ctx);
+     if (ctx->drbg == NULL)
+         goto err;
+@@ -127,76 +154,92 @@
+      * P2. We want decoder_store/decoder_cache to be cleaned up before the
+      * provider store
+      */
++    IEWK_CTX_DIAG("BEFORE_DECODER_STORE\r\n");
+     ctx->decoder_store = ossl_method_store_new(ctx);
+     if (ctx->decoder_store == NULL)
+         goto err;
++    IEWK_CTX_DIAG("BEFORE_DECODER_CACHE\r\n");
+     ctx->decoder_cache = ossl_decoder_cache_new(ctx);
+     if (ctx->decoder_cache == NULL)
+         goto err;
+ 
+     /* P2. We want encoder_store to be cleaned up before the provider store */
++    IEWK_CTX_DIAG("BEFORE_ENCODER_STORE\r\n");
+     ctx->encoder_store = ossl_method_store_new(ctx);
+     if (ctx->encoder_store == NULL)
+         goto err;
+ 
+     /* P2. We want loader_store to be cleaned up before the provider store */
++    IEWK_CTX_DIAG("BEFORE_STORE_LOADER_STORE\r\n");
+     ctx->store_loader_store = ossl_method_store_new(ctx);
+     if (ctx->store_loader_store == NULL)
+         goto err;
+ #endif
+ 
+     /* P1. Needs to be freed before the child provider data is freed */
++    IEWK_CTX_DIAG("BEFORE_PROVIDER_STORE\r\n");
+     ctx->provider_store = ossl_provider_store_new(ctx);
+     if (ctx->provider_store == NULL)
+         goto err;
+ 
+     /* Default priority. */
++    IEWK_CTX_DIAG("BEFORE_PROPERTY_STRING_DATA\r\n");
+     ctx->property_string_data = ossl_property_string_data_new(ctx);
+     if (ctx->property_string_data == NULL)
+         goto err;
+ 
++    IEWK_CTX_DIAG("BEFORE_NAMEMAP\r\n");
+     ctx->namemap = ossl_stored_namemap_new(ctx);
+     if (ctx->namemap == NULL)
+         goto err;
+ 
++    IEWK_CTX_DIAG("BEFORE_PROPERTY_DEFNS\r\n");
+     ctx->property_defns = ossl_property_defns_new(ctx);
+     if (ctx->property_defns == NULL)
+         goto err;
+ 
++    IEWK_CTX_DIAG("BEFORE_GLOBAL_PROPERTIES\r\n");
+     ctx->global_properties = ossl_ctx_global_properties_new(ctx);
+     if (ctx->global_properties == NULL)
+         goto err;
+ 
+ #ifndef FIPS_MODULE
++    IEWK_CTX_DIAG("BEFORE_BIO_CORE\r\n");
+     ctx->bio_core = ossl_bio_core_globals_new(ctx);
+     if (ctx->bio_core == NULL)
+         goto err;
+ #endif
+ 
++    IEWK_CTX_DIAG("BEFORE_DRBG_NONCE\r\n");
+     ctx->drbg_nonce = ossl_prov_drbg_nonce_ctx_new(ctx);
+     if (ctx->drbg_nonce == NULL)
+         goto err;
+ 
+ #ifndef FIPS_MODULE
++    IEWK_CTX_DIAG("BEFORE_SELF_TEST_CB\r\n");
+     ctx->self_test_cb = ossl_self_test_set_callback_new(ctx);
+     if (ctx->self_test_cb == NULL)
+         goto err;
++    IEWK_CTX_DIAG("BEFORE_INDICATOR_CB\r\n");
+     ctx->indicator_cb = ossl_indicator_set_callback_new(ctx);
+     if (ctx->indicator_cb == NULL)
+         goto err;
+ #endif
+ 
+ #ifdef FIPS_MODULE
++    IEWK_CTX_DIAG("BEFORE_THREAD_EVENT_HANDLER\r\n");
+     ctx->thread_event_handler = ossl_thread_event_ctx_new(ctx);
+     if (ctx->thread_event_handler == NULL)
+         goto err;
+ 
++    IEWK_CTX_DIAG("BEFORE_FIPS_PROV\r\n");
+     ctx->fips_prov = ossl_fips_prov_ossl_ctx_new(ctx);
+     if (ctx->fips_prov == NULL)
+         goto err;
+ #endif
+ 
+ #ifndef OPENSSL_NO_THREAD_POOL
++    IEWK_CTX_DIAG("BEFORE_THREADS\r\n");
+     ctx->threads = ossl_threads_ctx_new(ctx);
+     if (ctx->threads == NULL)
+         goto err;
+@@ -204,19 +247,23 @@
+ 
+     /* Low priority. */
+ #ifndef FIPS_MODULE
++    IEWK_CTX_DIAG("BEFORE_CHILD_PROVIDER\r\n");
+     ctx->child_provider = ossl_child_prov_ctx_new(ctx);
+     if (ctx->child_provider == NULL)
+         goto err;
+ #endif
+ 
+     /* Everything depends on properties, so we also pre-initialise that */
++    IEWK_CTX_DIAG("BEFORE_PROPERTY_PARSE\r\n");
+     if (!ossl_property_parse_init(ctx))
+         goto err;
+ 
+ #ifndef FIPS_MODULE
++    IEWK_CTX_DIAG("BEFORE_COMP_METHODS\r\n");
+     ctx->comp_methods = ossl_load_builtin_compressions();
+ #endif
+ 
++    IEWK_CTX_DIAG("CTX_COMPLETE\r\n");
+     return 1;
+ 
+ err:
+@@ -391,13 +438,16 @@
+ 
+ DEFINE_RUN_ONCE_STATIC(default_context_do_init)
+ {
++    IEWK_CTX_DIAG("DEFAULT_INIT_ENTER\r\n");
+     if (!CRYPTO_THREAD_init_local(&default_context_thread_local, NULL))
+         goto err;
+ 
++    IEWK_CTX_DIAG("DEFAULT_BEFORE_CONTEXT_INIT\r\n");
+     if (!context_init(&default_context_int))
+         goto deinit_thread;
+ 
+     default_context_inited = 1;
++    IEWK_CTX_DIAG("DEFAULT_INIT_DONE\r\n");
+     return 1;
+ 
+ deinit_thread:
+@@ -417,6 +467,7 @@
+ 
+ static OSSL_LIB_CTX *get_thread_default_context(void)
+ {
++    IEWK_CTX_DIAG("BEFORE_DEFAULT_ONCE\r\n");
+     if (!RUN_ONCE(&default_context_init, default_context_do_init))
+         return NULL;
+ 
+@@ -443,12 +494,16 @@
+ 
+ OSSL_LIB_CTX *OSSL_LIB_CTX_new(void)
+ {
+-    OSSL_LIB_CTX *ctx = OPENSSL_zalloc(sizeof(*ctx));
+-
++    OSSL_LIB_CTX *ctx;
++
++    IEWK_CTX_DIAG("LIBCTX_ENTER\r\n");
++    ctx = OPENSSL_zalloc(sizeof(*ctx));
++    IEWK_CTX_DIAG("LIBCTX_AFTER_ALLOC\r\n");
+     if (ctx != NULL && !context_init(ctx)) {
+         OPENSSL_free(ctx);
+         ctx = NULL;
+     }
++    IEWK_CTX_DIAG("LIBCTX_RETURN\r\n");
+     return ctx;
+ }
+ 

@@ -1,0 +1,197 @@
+--- a/crypto/core_namemap.c
++++ b/crypto/core_namemap.c
+@@ -12,6 +12,7 @@
+ #include "internal/hashtable.h"
+ #include "internal/sizes.h"
+ #include "crypto/context.h"
++#include "internal/iewk_win9x_diag.h"
+ 
+ #define NAMEMAP_HT_BUCKETS 512
+ 
+@@ -54,6 +55,7 @@
+ 
+ void *ossl_stored_namemap_new(OSSL_LIB_CTX *libctx)
+ {
++    IEWK_GUEST_DIAG("NM_STORED_ENTER\r\n");
+     OSSL_NAMEMAP *namemap = ossl_namemap_new(libctx);
+ 
+     if (namemap != NULL)
+@@ -525,18 +527,24 @@
+ 
+     htconf.ctx = libctx;
+ 
++    IEWK_GUEST_DIAG("NM_BEFORE_ALLOC\r\n");
+     if ((namemap = OPENSSL_zalloc(sizeof(*namemap))) == NULL)
+         goto err;
+ 
++    IEWK_GUEST_DIAG("NM_BEFORE_LOCK\r\n");
+     if ((namemap->lock = CRYPTO_THREAD_lock_new()) == NULL)
+         goto err;
+ 
++    IEWK_GUEST_DIAG("NM_BEFORE_HT\r\n");
+     if ((namemap->namenum_ht = ossl_ht_new(&htconf)) == NULL)
+         goto err;
+ 
++    IEWK_GUEST_DIAG("NM_BEFORE_STACK\r\n");
++    IEWK_GUEST_DIAG("NM_AFTER_HT\r\n");
+     if ((namemap->numnames = sk_NAMES_new_null()) == NULL)
+         goto err;
+ 
++    IEWK_GUEST_DIAG("NM_DONE\r\n");
+     return namemap;
+ 
+ err:
+--- a/crypto/hashtable/hashtable.c
++++ b/crypto/hashtable/hashtable.c
+@@ -53,6 +53,7 @@
+ #include <string.h>
+ #include <internal/rcu.h>
+ #include <internal/hashtable.h>
++#include "internal/iewk_win9x_diag.h"
+ #include <internal/hashfunc.h>
+ #include <openssl/rand.h>
+ 
+@@ -176,11 +177,13 @@
+ 
+ HT *ossl_ht_new(const HT_CONFIG *conf)
+ {
++    IEWK_GUEST_DIAG("HT_ENTER\r\n");
+     HT *new = OPENSSL_zalloc(sizeof(*new));
+ 
+     if (new == NULL)
+         return NULL;
+ 
++    IEWK_GUEST_DIAG("HT_BEFORE_ATOMIC_LOCK\r\n");
+     new->atomic_lock = CRYPTO_THREAD_lock_new();
+     if (new->atomic_lock == NULL)
+         goto err;
+@@ -204,23 +207,28 @@
+     if (new->config.ht_free_fn == NULL)
+         new->config.ht_free_fn = internal_free_nop;
+ 
++    IEWK_GUEST_DIAG("HT_BEFORE_MD_ALLOC\r\n");
+     new->md = OPENSSL_zalloc(sizeof(*new->md));
+     if (new->md == NULL)
+         goto err;
+ 
++    IEWK_GUEST_DIAG("HT_BEFORE_NEIGHBORHOODS\r\n");
+     new->md->neighborhoods = alloc_new_neighborhood_list(new->wpd.neighborhood_len,
+         &new->md->neighborhood_ptr_to_free);
+     if (new->md->neighborhoods == NULL)
+         goto err;
+     new->md->neighborhood_mask = new->wpd.neighborhood_len - 1;
+ 
++    IEWK_GUEST_DIAG("HT_BEFORE_RCU\r\n");
+     new->lock = ossl_rcu_lock_new(1, conf->ctx);
++    IEWK_GUEST_DIAG("HT_AFTER_RCU\r\n");
+     if (new->lock == NULL)
+         goto err;
+ 
+     if (new->config.ht_hash_fn == NULL)
+         new->config.ht_hash_fn = ossl_fnv1a_hash;
+ 
++    IEWK_GUEST_DIAG("HT_DONE\r\n");
+     return new;
+ 
+ err:
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -33,6 +33,7 @@
+ #include "internal/thread_arch.h"
+ #include "internal/rcu.h"
+ #include "rcu_internal.h"
++#include "internal/iewk_win9x_diag.h"
+ 
+ #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
+ 
+@@ -126,9 +127,20 @@
+ static struct rcu_qp *allocate_new_qp_group(struct rcu_lock_st *lock,
+     uint32_t count)
+ {
+-    struct rcu_qp *new = OPENSSL_zalloc(sizeof(*new) * count);
+-
++    struct rcu_qp *new;
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++    char args[80];
++    int length = wsprintfA(args, "QP_ARGS count=%lu size=%lu\r\n",
++                          (unsigned long)count,
++                          (unsigned long)sizeof(*new));
++    if (length > 0)
++        iewk_guest_diag(args, (DWORD)length);
++#endif
++    IEWK_GUEST_DIAG("QP_BEFORE_ZALLOC\r\n");
++    new = OPENSSL_zalloc(sizeof(*new) * count);
++    IEWK_GUEST_DIAG("QP_AFTER_ZALLOC\r\n");
+     lock->group_count = count;
++    IEWK_GUEST_DIAG("QP_RETURN\r\n");
+     return new;
+ }
+ 
+@@ -142,23 +154,33 @@
+     if (num_writers < 2)
+         num_writers = 2;
+ 
++    IEWK_GUEST_DIAG("RCU_BEFORE_CONCRETE\r\n");
+     ctx = ossl_lib_ctx_get_concrete(ctx);
+     if (ctx == NULL)
+         return 0;
+ 
++    IEWK_GUEST_DIAG("RCU_BEFORE_ALLOC\r\n");
+     new = OPENSSL_zalloc(sizeof(*new));
+ 
+     if (new == NULL)
+         return NULL;
+ 
+     new->ctx = ctx;
++    IEWK_GUEST_DIAG("RCU_BEFORE_RW_LOCK\r\n");
+     new->rw_lock = CRYPTO_THREAD_lock_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_WRITE_LOCK\r\n");
+     new->write_lock = ossl_crypto_mutex_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_ALLOC_SIGNAL\r\n");
+     new->alloc_signal = ossl_crypto_condvar_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_PRIOR_SIGNAL\r\n");
+     new->prior_signal = ossl_crypto_condvar_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_ALLOC_LOCK\r\n");
+     new->alloc_lock = ossl_crypto_mutex_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_PRIOR_LOCK\r\n");
+     new->prior_lock = ossl_crypto_mutex_new();
++    IEWK_GUEST_DIAG("RCU_BEFORE_QP\r\n");
+     new->qp_group = allocate_new_qp_group(new, num_writers);
++    IEWK_GUEST_DIAG("RCU_AFTER_QP\r\n");
+     if (new->qp_group == NULL
+         || new->alloc_signal == NULL
+         || new->prior_signal == NULL
+@@ -177,6 +199,7 @@
+         new = NULL;
+     }
+ 
++    IEWK_GUEST_DIAG("RCU_DONE\r\n");
+     return new;
+ }
+ 
+--- /dev/null
++++ b/include/internal/iewk_win9x_diag.h
+@@ -0,0 +1,23 @@
++/* Copyright (c) 2026 IEWebkit contributors. SPDX-License-Identifier: BSD-2-Clause */
++/* Opt-in Windows ME breadcrumb trace. Excluded from production builds. */
++#ifndef IEWK_WIN9X_DIAG_H
++#define IEWK_WIN9X_DIAG_H
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++# include <windows.h>
++static void iewk_guest_diag(const char *message, DWORD length)
++{
++    DWORD written;
++    HANDLE file = CreateFileA("C:\\ZUKUQA\\NMMNEW.LOG", GENERIC_WRITE,
++                              FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
++                              OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
++    if (file == INVALID_HANDLE_VALUE)
++        return;
++    SetFilePointer(file, 0, NULL, FILE_END);
++    WriteFile(file, message, length, &written, NULL);
++    CloseHandle(file);
++}
++# define IEWK_GUEST_DIAG(message) iewk_guest_diag(message, (DWORD)(sizeof(message) - 1))
++#else
++# define IEWK_GUEST_DIAG(message) ((void)0)
++#endif
++#endif

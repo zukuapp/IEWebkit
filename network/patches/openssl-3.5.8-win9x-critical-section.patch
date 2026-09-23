@@ -1,0 +1,12 @@
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -446,7 +446,8 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
+         /* Don't set error, to avoid recursion blowup. */
+         return NULL;
+ 
+-#if !defined(_WIN32_WCE)
++/* Win9x exports the spin-count API but its stub fails at runtime. */
++#if !defined(_WIN32_WCE) && !defined(IEWK_WIN9X)
+     /* 0x400 is the spin count value suggested in the documentation */
+     if (!InitializeCriticalSectionAndSpinCount(lock, 0x400)) {
+         OPENSSL_free(lock);

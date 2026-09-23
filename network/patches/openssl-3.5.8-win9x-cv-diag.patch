@@ -1,0 +1,65 @@
+--- a/crypto/thread/arch/thread_win.c
++++ b/crypto/thread/arch/thread_win.c
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <internal/thread_arch.h>
++#include "internal/iewk_win9x_diag.h"
+ 
+ #if defined(OPENSSL_THREADS_WINNT)
+ #include <process.h>
+@@ -301,27 +302,53 @@
+ {
+     LEGACY_CONDVAR *cv;
+ 
++    IEWK_GUEST_DIAG("CV_BEFORE_ALLOC\r\n");
+     if ((cv = OPENSSL_malloc(sizeof(LEGACY_CONDVAR))) == NULL)
+         return NULL;
+-
++    IEWK_GUEST_DIAG("CV_AFTER_ALLOC\r\n");
++
++    IEWK_GUEST_DIAG("CV_BEFORE_MUTEX\r\n");
+     if ((cv->int_m = ossl_crypto_mutex_new()) == NULL) {
+         OPENSSL_free(cv);
+         return NULL;
+     }
+ 
++    IEWK_GUEST_DIAG("CV_BEFORE_SEMA\r\n");
+     if ((cv->sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL) {
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++        {
++            DWORD saved_error = GetLastError();
++            char detail[80];
++            int length = wsprintfA(detail, "CV_SEMA_FAIL error=%lu\r\n",
++                                  (unsigned long)saved_error);
++            if (length > 0)
++                iewk_guest_diag(detail, (DWORD)length);
++        }
++#endif
+         ossl_crypto_mutex_free(&cv->int_m);
+         OPENSSL_free(cv);
+         return NULL;
+     }
+ 
++    IEWK_GUEST_DIAG("CV_BEFORE_PREWAIT_SEMA\r\n");
+     if ((cv->prewait_sema = CreateSemaphoreA(NULL, 0, LONG_MAX, NULL)) == NULL) {
++#if defined(IEWK_WIN9X_SSL_DIAG) && defined(_WIN32)
++        {
++            DWORD saved_error = GetLastError();
++            char detail[80];
++            int length = wsprintfA(detail, "CV_PREWAIT_SEMA_FAIL error=%lu\r\n",
++                                  (unsigned long)saved_error);
++            if (length > 0)
++                iewk_guest_diag(detail, (DWORD)length);
++        }
++#endif
+         CloseHandle(cv->sema);
+         ossl_crypto_mutex_free(&cv->int_m);
+         OPENSSL_free(cv);
+         return NULL;
+     }
+ 
++    IEWK_GUEST_DIAG("CV_SEMAS_OK\r\n");
+     cv->num_wait = 0;
+     cv->num_wake = 0;
+     cv->num_prewait = 0;

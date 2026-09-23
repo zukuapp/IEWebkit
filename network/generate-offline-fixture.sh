@@ -32,6 +32,12 @@ openssl x509 -req -in "$fixture_dir/server.csr" \
   -out "$fixture_dir/server.pem" -days 3650 -sha256 \
   -extfile "$repo_root/network/testdata/server.ext" \
   > "$fixture_dir/sign.log" 2>&1
-sha256sum "$fixture_dir/ca.pem" "$fixture_dir/server.pem" \
+openssl req -x509 -newkey rsa:2048 -sha256 -days 3650 -nodes \
+  -keyout "$fixture_dir/otherca.key" -out "$fixture_dir/otherca.pem" \
+  -subj '/CN=IEWebkit Other Test CA' \
+  -addext 'basicConstraints=critical,CA:TRUE' \
+  -addext 'keyUsage=critical,keyCertSign,cRLSign' \
+  > "$fixture_dir/otherca-gen.log" 2>&1
+sha256sum "$fixture_dir/ca.pem" "$fixture_dir/otherca.pem" "$fixture_dir/server.pem" \
   "$fixture_dir/server.key" > "$fixture_dir/SHA256SUMS"
 echo "Disposable fixture generated under $fixture_dir"

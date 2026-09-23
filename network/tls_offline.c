@@ -14,6 +14,10 @@
 static FILE *report;
 enum expectation { ACCEPT, HOST_MISMATCH, UNTRUSTED_CA };
 
+#ifndef IEWK_QA_LOG_SUFFIX
+#define IEWK_QA_LOG_SUFFIX ""
+#endif
+
 static unsigned long platform_error(void)
 {
 #ifdef _WIN32
@@ -148,7 +152,8 @@ int main(int argc, char **argv)
     const char *cert = argc > 2 ? argv[2] : "D:\\SERVER.PEM";
     const char *key = argc > 3 ? argv[3] : "D:\\SERVER.KEY";
     const char *other_ca = argc > 4 ? argv[4] : "D:\\OTHERCA.PEM";
-    const char *log_path = argc > 5 ? argv[5] : "C:\\ZUKUQA\\TLSOFF.LOG";
+    const char *log_path = argc > 5 ? argv[5] :
+                           "C:\\ZUKUQA\\TLSOFF" IEWK_QA_LOG_SUFFIX ".LOG";
     int valid, invalid, untrusted;
 
     report = fopen(log_path, "wb");

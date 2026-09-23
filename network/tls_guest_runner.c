@@ -3,6 +3,10 @@
 #define WINVER 0x0410
 #include <windows.h>
 
+#ifndef IEWK_QA_LOG_SUFFIX
+#define IEWK_QA_LOG_SUFFIX ""
+#endif
+
 static void clear_bytes(void *out, DWORD count)
 {
     BYTE *bytes = (BYTE *)out;
@@ -28,14 +32,16 @@ void WINAPI start(void)
     BOOL launched;
     DWORD code = 0xffffffffu, waited, launch_error;
 
-    log = CreateFileA("C:\\ZUKUQA\\TLSRUN.LOG", GENERIC_WRITE, FILE_SHARE_READ,
+    log = CreateFileA("C:\\ZUKUQA\\TLSRUN" IEWK_QA_LOG_SUFFIX ".LOG",
+                      GENERIC_WRITE, FILE_SHARE_READ,
                       NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     if (log == INVALID_HANDLE_VALUE)
         ExitProcess(2);
     clear_bytes(&security, sizeof(security));
     security.nLength = sizeof(security);
     security.bInheritHandle = TRUE;
-    output = CreateFileA("C:\\ZUKUQA\\TLSOUT.LOG", GENERIC_WRITE, FILE_SHARE_READ,
+    output = CreateFileA("C:\\ZUKUQA\\TLSOUT" IEWK_QA_LOG_SUFFIX ".LOG",
+                         GENERIC_WRITE, FILE_SHARE_READ,
                          &security, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
     input = CreateFileA("NUL", GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE, &security,

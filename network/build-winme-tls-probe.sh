@@ -9,6 +9,12 @@ fi
 source_archive=$(realpath "$1")
 work_root=$(realpath -m "$2")
 repo_root=$(realpath "$(dirname "$0")/..")
+qa_log_suffix=${IEWK_QA_LOG_SUFFIX:-}
+if [[ ! "$qa_log_suffix" =~ ^[0-9]{0,2}$ ]]; then
+  echo "IEWK_QA_LOG_SUFFIX must contain zero to two digits" >&2
+  exit 2
+fi
+qa_log_define="-DIEWK_QA_LOG_SUFFIX=\"$qa_log_suffix\""
 if [[ $# -eq 4 ]]; then
   me_dll_dir=$(realpath "$3")
   me_baseline=$(realpath "$4")
@@ -67,6 +73,7 @@ i686-w64-mingw32-gcc -O2 -Wall -Wextra \
   -lws2_32 -lgdi32 -luser32 -ladvapi32 -lcrypt32
 i686-w64-mingw32-gcc -O2 -Wall -Wextra \
   -DWINVER=0x0490 -D_WIN32_WINDOWS=0x0490 -D_WIN32_WINNT=0x0400 \
+  "$qa_log_define" \
   -I"$work_root/install/include" \
   -o "$work_root/tls-offline.exe" "$repo_root/network/tls_offline.c" \
   -L"$work_root/install/lib" -lssl -lcrypto \
@@ -86,6 +93,7 @@ i686-w64-mingw32-gcc -O2 -Wall -Wextra -Werror \
 i686-w64-mingw32-gcc -std=c99 -Os -Wall -Wextra -Werror -nostdlib \
   -fno-builtin -mwindows -Wl,--entry,_start@0 \
   -Wl,--subsystem,windows:4.0 \
+  "$qa_log_define" \
   "$repo_root/network/tls_guest_runner.c" \
   -o "$work_root/tls-runner.exe" -lkernel32 -luser32
 for binary in "$work_root/tls-smoke.exe" "$work_root/tls-offline.exe" \
@@ -116,9 +124,13 @@ if [[ $# -eq 4 ]]; then
       > "$work_root/$name-import-audit.log"
   done
 fi
+printf 'IEWK_QA_LOG_SUFFIX=%s\n' "$qa_log_suffix" > "$work_root/qa-log-suffix.txt"
 sha256sum "$source_archive" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-critical-section.patch" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-thread-backend.patch" \
+  "$repo_root/network/tls_offline.c" \
+  "$repo_root/network/tls_guest_runner.c" \
+  "$work_root/qa-log-suffix.txt" \
   "$work_root/tls-smoke.exe" \
   "$work_root/tls-offline.exe" "$work_root/tls-init-diag.exe" \
   "$work_root/tls-libctx-diag.exe" \

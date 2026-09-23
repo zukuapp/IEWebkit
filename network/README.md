@@ -31,6 +31,13 @@ builds retain upstream behavior.
   /path/to/ME-dll-hashes.json
 ```
 
+For a new sealed guest round, set `IEWK_QA_LOG_SUFFIX` to one or two digits
+before the build, for example `IEWK_QA_LOG_SUFFIX=15`. The offline probe then
+writes `TLSOFF15.LOG`; its fixed runner writes `TLSRUN15.LOG` and
+`TLSOUT15.LOG`. The work directory records the suffix and source hashes in
+`qa-log-suffix.txt` and `SHA256SUMS`. This keeps logs from different media
+rounds distinct without changing the TLS checks.
+
 The third and fourth arguments are optional as a pair. When provided, the
 script audits all five linked PE files and fails on a missing import or DLL
 hash mismatch. Results are `*-imports.json` in the work directory. The
@@ -79,6 +86,8 @@ Stage these files at the root of a read-only guest test CD:
 | --- | --- |
 | `tls-offline.exe` | `D:\TLSOFF.EXE` |
 | `tls-runner.exe` | `D:\TLSRUN.EXE` |
+| the same `tls-offline.exe` for the private QA helper | `D:\ZUKUDIAG.EXE` |
+| pinned and audited private serial QA helper | `D:\ZUKUQA.EXE` |
 | fixture `ca.pem` | `D:\CA.PEM` |
 | fixture `otherca.pem` | `D:\OTHERCA.PEM` |
 | fixture `server.pem` | `D:\SERVER.PEM` |
@@ -92,6 +101,21 @@ records the child exit code in `C:\ZUKUQA\TLSRUN.LOG`; the child writes
 dates and the VM clock can affect certificate validity; do not turn off time
 checks to make a test pass.
 
+The packaging script verifies byte-for-byte ISO extraction and requires PE
+import audit reports that match the exact offline, runner and QA helper bytes:
+
+```
+./network/package-winme-tls-offline-iso.sh \
+  /external/build /external/fixture /external/ZUKUQA.EXE \
+  /external/qa-helper-imports.json /external/offline-qa.iso
+```
+
+The optional private serial helper runs only the fixed `D:\ZUKUDIAG.EXE`
+path; its source and guest result belong to the compatibility VM lab. A
+successful helper transaction or runner exit is not sufficient by itself:
+read the fresh `TLSOFF<suffix>.LOG` and require `valid=1`,
+`invalid_rejected=1` and `untrusted_rejected=1`.
+
 For the constructor probe, stage `tls-libctx-diag.exe` as `D:\TLSOFF.EXE`
 beside the same runner. Read `C:\ZUKUQA\TLSCTX.LOG` and `TLSRUN.LOG` after
 execution. A zero runner exit only means that this specific constructor probe
@@ -104,3 +128,8 @@ accepted as a constructor pass. Future rounds must use unique log names and
 bind the staged executable hash to the retrieved logs. Neither the TLS
 offline test nor public Cloudflare HTTPS is accepted yet. The current ME lab
 has no proven working NIC for the public probe.
+
+The R14 unique-media guest run did establish `OSSL_LIB_CTX_new/free` with
+matching `TLSCTX14.LOG`, constructor stage logs and runner exit zero. It did
+not run a TLS handshake; the offline positive and negative certificate cases
+remain a separate guest gate.

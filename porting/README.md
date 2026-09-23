@@ -57,8 +57,12 @@ installs successfully, and JSC configuration completes with those target archive
 Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
 `libbmalloc.a` and compiles initial WTF files. The next observed blocker,
 `DateMath.cpp` at `GetTimeZoneInformationForYear`, now passes a focused object
-compile after the standard-timezone patch. The broad build has not resumed;
-no `jsc.exe` or engine was produced. See [DATE-OFFSET.md](DATE-OFFSET.md).
+compile after the standard-timezone patch. A later focused continuation compiled
+six more generic WTF objects and the patched Windows file-handle object. The
+next explicitly tested object, `StackBounds.cpp`, fails at
+`GetCurrentThreadStackLimits`. No `jsc.exe` or engine was produced. See
+[DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md) and the
+[17-profile dependency audit](VARIANT-DEPENDENCIES.md).
 
 The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
 unmodified upstream profile uses Windows 7 declarations and must not be treated
@@ -100,6 +104,10 @@ those preservation boundaries.
 The initial system-malloc experiment was rejected by WebKit's Windows allocator
 contract; the bootstrap selects bundled mimalloc instead. These patches do not
 complete the Win9x OS abstraction.
+
+- `webkit-2.54.0-pre-vista-truncate.patch`: preserves file cursor and primary
+  failure errors around a pre-Vista `SetEndOfFile` fallback. The full object
+  compiles; ME/NT5 boundary probes pass, actual filesystem guest test is pending.
 
 ## Allocator probes
 
@@ -152,7 +160,7 @@ porting evidence:
 | `Source/cmake/OptionsCommon.cmake` | C++23; compiler can target x86 but its CRT and thread-local destruction support must also run on ME. |
 | `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
 | `WTF/wtf/StackBounds.cpp` | Unconditional Windows `GetCurrentThreadStackLimits`; ME needs correct main/worker stack bounds including guard-page behavior. |
-| `WTF/wtf/win/FileHandleWin.cpp` | `SetFileInformationByHandle`, modern seeking and Unicode/file paths; adapt using available ME APIs and preserve offsets/error behavior. |
+| `WTF/wtf/win/FileHandleWin.cpp` | Pre-Vista truncation fallback now compiles and passes boundary tests. Unicode/file-path and actual filesystem behavior remain guest gates. |
 | `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME standard-offset query passes; separate seasonal conversion remains unverified. See `DATE-OFFSET.md`. |
 | `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |
 | `WTF/wtf/PlatformJSCOnly.cmake` | Links `synchronization`, DbgHelp and other Windows libraries; a Win9x port must remove/replace unavailable services. |

@@ -48,6 +48,14 @@
       "after_sha256": "7e1eff695bef08a34a3a6cdf845d888d02ae0817fb38a530ea8c9aface6a880a",
       "patch_sha256": "b56e74f668cb69429548b59b523734030fc92683f22981c88b541e6fba9118ca",
       "reason": "Use Win9x current timezone settings for standard offset; keep DST separate, honor transition validity, and correct modern BOOL/local-year API semantics."
+    },
+    {
+      "path": "Source/WTF/wtf/win/FileHandleWin.cpp",
+      "patch": "patches/webkit-2.54.0-pre-vista-truncate.patch",
+      "before_sha256": "cff5e741a4be08c3138b47cdd4020cbffac29d7be3cae3e60e8ec9801e873732",
+      "after_sha256": "dee0f441c2964c070761e840971c3c59e2c292a4282b3ae7c2bdffcdfe03a298",
+      "patch_sha256": "6ceb93187b818eb97f9db9ad452ff5a89d391a33253a0468b05ecca4bf023c56",
+      "reason": "Pre-Vista file truncate using SetEndOfFile with preserved cursor and primary error; Vista+ API unchanged."
     }
   ]
 }

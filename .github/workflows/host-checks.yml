@@ -1,0 +1,28 @@
+name: Host and target checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install cross-compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc g++ make gcc-mingw-w64-i686 g++-mingw-w64-i686
+      - name: Validate target selection and external build paths
+        run: |
+          python3 tools/variants.py validate
+          python3 -m unittest discover -s test -p 'test_*.py'
+          python3 -m unittest discover -s porting/tests -p 'test_*.py'
+      - name: Test native contract and cross-compile IE host
+        run: make -C host test docobject

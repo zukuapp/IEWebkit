@@ -12,8 +12,9 @@ published SHA-256 is
 The build script requires that exact archive and keeps source, licenses, build
 objects and binaries outside this repository. The static x86 MinGW profile uses
 `no-pinshared` because `GetModuleHandleExW` is absent from Windows ME. It uses
-`no-comp` to omit obsolete TLS compression. Neither setting disables
-certificate verification, hostname matching or SNI.
+`no-comp` to omit obsolete TLS compression and `no-capieng` to omit the unused
+Windows CryptoAPI engine. These settings do not disable certificate
+verification, hostname matching or SNI.
 
 The pinned local OpenSSL patch switches its internal reader/writer lock to
 `InitializeCriticalSection` on Win9x. The spin-count entry point exists in the
@@ -22,7 +23,11 @@ success alone missed this dependency. A second patch selects OpenSSL's real
 legacy Win32 mutex and condition-variable backend. With `_WIN32_WINNT=0x0400`,
 upstream selected `OPENSSL_THREADS_NONE` while its RCU code still required those
 objects. Both patches are selected explicitly with `IEWK_WIN9X`; other Windows
-builds retain upstream behavior.
+builds retain upstream behavior. The ME entropy patch uses
+`CryptAcquireContextA` instead of the wide entry point still linked in R16
+after the R15 guest's not-implemented failure. The precise failing call in R15
+was not traced. Modern Windows retains upstream's wide call. The probe still
+requires OpenSSL's normal random-seeding success.
 
 ```
 ./network/build-winme-tls-probe.sh \
@@ -40,7 +45,9 @@ rounds distinct without changing the TLS checks.
 
 The third and fourth arguments are optional as a pair. When provided, the
 script audits all five linked PE files and fails on a missing import or DLL
-hash mismatch. Results are `*-imports.json` in the work directory. The
+hash mismatch. The pinned DLL set must include `crypt32.dll` while the optional
+OpenSSL winstore provider is linked. Results are `*-imports.json` in the work
+directory. The
 two-argument form leaves import auditing pending. Every run needs a new work
 directory; the script refuses an existing extracted source tree. It checks
 the compiled `no-comp` setting and that the Win32 object, rather than the
@@ -64,8 +71,7 @@ Passing the import audit means only that a linked PE names functions present
 in the selected ME DLLs. The exported spin-count API failed at runtime in ME,
 so import compatibility is a separate gate. A guest run with actual network
 access is needed to establish DNS, TCP, crypto initialization, handshake and
-CA validation. Once
-that succeeds, WebCore's curl network backend still needs a Windows ME port
+CA validation. Once that succeeds, WebCore's curl network backend still needs a Windows ME port
 and its own request, redirect, cookie, cache and credential boundary tests.
 
 ## Offline guest gate when ME has no working NIC
@@ -133,3 +139,12 @@ The R14 unique-media guest run did establish `OSSL_LIB_CTX_new/free` with
 matching `TLSCTX14.LOG`, constructor stage logs and runner exit zero. It did
 not run a TLS handshake; the offline positive and negative certificate cases
 remain a separate guest gate.
+
+The R15 ME offline log failed at client context construction with Windows error
+120 (`ERROR_CALL_NOT_IMPLEMENTED`). R17 links the ANSI entropy call and omits
+the CAPI engine. Its exact binaries passed the pinned ME import audit and its
+source passed host positive, wrong-host and untrusted-CA checks. R17 still
+imports `CertOpenSystemStoreW` through the optional system-store provider; the
+offline probe loads an explicit PEM CA file instead. The R17 ME handshake and
+random-seeding behavior remain unverified until its unique ISO runs in the
+guest.

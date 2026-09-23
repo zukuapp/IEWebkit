@@ -41,10 +41,13 @@ patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-critical-section.pat
   > "$work_root/patch.log"
 patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-thread-backend.patch" \
   >> "$work_root/patch.log"
+patch -p1 < "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-ansi.patch" \
+  >> "$work_root/patch.log"
 perl Configure mingw \
   --cross-compile-prefix=i686-w64-mingw32- \
   --prefix="$work_root/install" \
   no-shared no-pinshared no-apps no-tests no-docs no-asm no-async no-comp \
+  no-capieng \
   -DWINVER=0x0490 -D_WIN32_WINDOWS=0x0490 -D_WIN32_WINNT=0x0400 \
   -DIEWK_WIN9X=1 \
   > "$work_root/configure.log" 2>&1
@@ -109,7 +112,7 @@ for binary in "$work_root/tls-smoke.exe" "$work_root/tls-offline.exe" \
       exit 1
     fi
   done
-  if rg -q 'InitializeCriticalSectionAndSpinCount|GetModuleHandleExW' \
+  if rg -q 'InitializeCriticalSectionAndSpinCount|GetModuleHandleExW|CryptAcquireContextW' \
      "$work_root/$binary_name-pe.txt"; then
     echo "linked PE imports an unsupported ME routine: $binary" >&2
     exit 1
@@ -128,6 +131,7 @@ printf 'IEWK_QA_LOG_SUFFIX=%s\n' "$qa_log_suffix" > "$work_root/qa-log-suffix.tx
 sha256sum "$source_archive" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-critical-section.patch" \
   "$repo_root/network/patches/openssl-3.5.8-win9x-thread-backend.patch" \
+  "$repo_root/network/patches/openssl-3.5.8-win9x-cryptoapi-ansi.patch" \
   "$repo_root/network/tls_offline.c" \
   "$repo_root/network/tls_guest_runner.c" \
   "$work_root/qa-log-suffix.txt" \

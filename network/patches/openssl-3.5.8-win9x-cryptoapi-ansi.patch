@@ -1,0 +1,36 @@
+--- a/providers/implementations/rands/seeding/rand_win.c
++++ b/providers/implementations/rands/seeding/rand_win.c
+@@ -35,7 +35,15 @@
+  * http://developer.intel.com/design/security/rng/redist_license.htm
+  */
+ #define PROV_INTEL_SEC 22
++/* The W entry point is exported but returns ERROR_CALL_NOT_IMPLEMENTED on
++ * Windows ME. Keep modern Windows on the upstream Unicode path. */
++#if defined(IEWK_WIN9X)
++#define IEWK_CRYPT_ACQUIRE CryptAcquireContextA
++#define INTEL_DEF_PROV "Intel Hardware Cryptographic Service Provider"
++#else
++#define IEWK_CRYPT_ACQUIRE CryptAcquireContextW
+ #define INTEL_DEF_PROV L"Intel Hardware Cryptographic Service Provider"
++#endif
+ #endif
+ 
+ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+@@ -86,7 +94,7 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+     if (buffer != NULL) {
+         size_t bytes = 0;
+         /* poll the CryptoAPI PRNG */
+-        if (CryptAcquireContextW(&hProvider, NULL, NULL, PROV_RSA_FULL,
++        if (IEWK_CRYPT_ACQUIRE(&hProvider, NULL, NULL, PROV_RSA_FULL,
+                 CRYPT_VERIFYCONTEXT | CRYPT_SILENT)
+             != 0) {
+             if (CryptGenRandom(hProvider, bytes_needed, buffer) != 0)
+@@ -106,7 +114,7 @@ size_t ossl_pool_acquire_entropy(RAND_POOL *pool)
+     if (buffer != NULL) {
+         size_t bytes = 0;
+         /* poll the Pentium PRG with CryptoAPI */
+-        if (CryptAcquireContextW(&hProvider, NULL,
++        if (IEWK_CRYPT_ACQUIRE(&hProvider, NULL,
+                 INTEL_DEF_PROV, PROV_INTEL_SEC,
+                 CRYPT_VERIFYCONTEXT | CRYPT_SILENT)
+             != 0) {

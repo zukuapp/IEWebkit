@@ -1,6 +1,11 @@
 /* Site-neutral Active Document host. The URL moniker is the browser binding;
    an installed WebKit provider owns the document, scripting, TLS and pixels. */
 #include "engine_loader.h"
+#ifdef IEWK_NAV_DIAGNOSTIC
+#include "navigation_trace.h"
+#else
+static inline void iewk_navigation_trace(const char *, DWORD) {}
+#endif
 #include <cstdio>
 #include <cstring>
 #include <docobj.h>
@@ -166,6 +171,7 @@ class Document : public IOleObject,
     browser->Release();
   }
   HRESULT show() {
+    iewk_navigation_trace("Document.show", 1);
     if (!place)
       return E_UNEXPECTED;
     HWND parent = NULL;
@@ -176,8 +182,10 @@ class Document : public IOleObject,
       return E_FAIL;
     if (!window) {
       if (!engine.library &&
-          iewk_load_engine(module_handle, &engine) != IEWK_OK)
+          iewk_load_engine(module_handle, &engine) != IEWK_OK) {
+        iewk_navigation_trace("Document.engine_missing", 1);
         return HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND);
+      }
       window = CreateWindowA(
           "STATIC", "", WS_CHILD | WS_CLIPCHILDREN, rectangle.left,
           rectangle.top, rectangle.right - rectangle.left,
@@ -514,6 +522,7 @@ public:
   HRESULT STDMETHODCALLTYPE IsDirty() { return S_FALSE; }
   HRESULT STDMETHODCALLTYPE Load(BOOL, IMoniker *source, IBindCtx *context,
                                  DWORD) {
+    iewk_navigation_trace("Document.Load", 1);
     if (!source || !context)
       return E_INVALIDARG;
     LPOLESTR name = NULL;
@@ -528,6 +537,7 @@ public:
       return E_ACCESSDENIED;
     }
     SetMoniker(0, source);
+    iewk_navigation_trace("Document.remote_https", !std::strncmp(url,"https://",8));
     return view ? (navigate_engine() == IEWK_OK ? S_OK : E_FAIL) : S_OK;
   }
   HRESULT STDMETHODCALLTYPE Save(IMoniker *, IBindCtx *, BOOL) {

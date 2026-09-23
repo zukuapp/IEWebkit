@@ -80,6 +80,14 @@
       "after_sha256": "419460998726d1adc1c3b4d0b0a957a207ab01863b166dbd0b7400b23607c3d8",
       "patch_sha256": "e0e53a2f13c43b8f60096a41a64e1b05dd5b1b5eac9dfaaa218cf135df0162c2",
       "reason": "Keep process query C ABI and visibility without leaking libpas pthread aliases into C++ consumers."
+    },
+    {
+      "path": "Source/WTF/wtf/win/ThreadingWin.cpp",
+      "patch": "patches/webkit-2.54.0-thread-name-seh.patch",
+      "before_sha256": "b7069b8757c050c3e3aaf4bcc559f85e251342b7f43e9d833054faeaf35d6db6",
+      "after_sha256": "daf01d64e142430bdf683111e60e6461ed3e3431e4506723c430097b15d1da7d",
+      "patch_sha256": "4d797dce0afc07f562c840b491f1e25be9c6f16dd777c372a8613a43197864c6",
+      "reason": "Keep MSVC debugger naming SEH in compatible compiler branch; use diagnostic output for MinGW without skipping thread initialization."
     }
   ]
 }

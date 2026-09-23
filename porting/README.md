@@ -60,8 +60,9 @@ Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
 compile after the standard-timezone patch. A later focused continuation compiled
 six more generic WTF objects and the patched Windows file-handle object. The
 next explicitly tested object, `StackBounds.cpp`, now compiles after a validated
-legacy metadata fallback. `win/ThreadingWin.cpp` then fails at MSVC SEH and
-SRW/condition-variable APIs. No `jsc.exe` or engine was produced. See
+legacy metadata fallback. `win/ThreadingWin.cpp` now passes a modern-declaration object compile; its ME
+compile still fails at SRW/condition-variable APIs after isolating pthread
+headers and the MSVC-only debugger-naming SEH. No `jsc.exe` or engine was produced. See
 [DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
@@ -118,6 +119,10 @@ complete the Win9x OS abstraction.
 - `webkit-2.54.0-process-header.patch` and `process-platform.patch`: isolate the
   process query declaration from libpas pthread aliases, retaining C linkage,
   architecture configuration and visibility. See [PROCESS-HEADER.md](PROCESS-HEADER.md).
+
+- `webkit-2.54.0-thread-name-seh.patch`: preserves MSVC debugger naming and
+  uses a diagnostic-only fallback on MinGW, without skipping required thread
+  initialization. See [THREAD-NAME.md](THREAD-NAME.md) for compiler/runtime gates.
 
 ## Allocator probes
 

@@ -41,7 +41,9 @@ behavior. The existing `GetModuleHandleW`/`RtlDllShutdownInProgress` discovery
 logic is unchanged and still needs actual target lifetime testing.
 
 The real `ThreadingWin.cpp` retry no longer reports pthread typedef collisions
-or a redefined `PTHREAD_ONCE_INIT`. It still fails at `__except` and the absent
-SRW/condition-variable calls. The full object and JSC engine remain unbuilt.
+or a redefined `PTHREAD_ONCE_INIT`. It then failed at `__except` and the absent
+SRW/condition-variable calls. The subsequent [naming checkpoint](THREAD-NAME.md)
+removes the SEH compiler error; ME synchronization and the JSC engine remain
+unbuilt.
 External before/after and link logs:
 `/srv/zuku/deploy-work/20260924-process-header/`.

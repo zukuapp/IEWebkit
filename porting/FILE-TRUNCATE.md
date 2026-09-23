@@ -55,6 +55,7 @@ Build/probe logs are external at
 A separate focused `StackBounds.cpp` compile now fails at
 `GetCurrentThreadStackLimits`, a
 [Windows 8+ API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentthreadstacklimits).
-No fallback was guessed: stack guard, reserve/commit boundaries, worker/main
-thread and collector invariants need dedicated tests. JSC has not linked, and
-no engine or renderer pass follows from this file-operation object.
+The subsequent [stack checkpoint](STACK-BOUNDS.md) adds a source-tested fallback
+and passes the object compile; actual stack and collector behavior remain guest
+gates. JSC has not linked, and no engine or renderer pass follows from this
+file-operation object.

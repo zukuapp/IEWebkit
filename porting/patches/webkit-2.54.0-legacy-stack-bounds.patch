@@ -1,0 +1,87 @@
+--- a/Source/WTF/wtf/StackBounds.cpp
++++ b/Source/WTF/wtf/StackBounds.cpp
+@@ -194,8 +194,74 @@
+ // Reference:
+ // https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentthreadstacklimits
+ 
+-StackBounds StackBounds::currentThreadStackBoundsInternal()
+-{
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0602
++static bool getLegacyWindowsStackBounds(uintptr_t stackPointer, uintptr_t& origin, uintptr_t& bound)
++{
++    auto* tib = reinterpret_cast<NT_TIB*>(NtCurrentTeb());
++    if (!tib)
++        return false;
++    origin = reinterpret_cast<uintptr_t>(tib->StackBase);
++    MEMORY_BASIC_INFORMATION current = { };
++    if (VirtualQuery(reinterpret_cast<void*>(stackPointer), &current, sizeof(current)) != sizeof(current)
++        || current.State != MEM_COMMIT || current.Type != MEM_PRIVATE
++        || (current.Protect & (PAGE_GUARD | PAGE_NOACCESS)))
++        return false;
++
++    uintptr_t allocation = reinterpret_cast<uintptr_t>(current.AllocationBase);
++    SYSTEM_INFO system = { };
++    GetSystemInfo(&system);
++    uintptr_t pageSize = system.dwPageSize;
++    if (!pageSize || (pageSize & (pageSize - 1)) || !allocation
++        || allocation % pageSize || origin % pageSize
++        || allocation >= stackPointer || stackPointer >= origin
++        || origin - allocation <= pageSize)
++        return false;
++    // Keep a bottom page unavailable even after its guard was consumed.
++    bound = allocation + pageSize;
++    if (bound >= stackPointer)
++        return false;
++
++    // Query metadata only: never probe/touch guard pages. Region count and
++    // progress are bounded; do not assume reserve/guard/commit form 3 regions.
++    uintptr_t cursor = allocation;
++    unsigned regions = 0;
++    while (cursor < origin) {
++        MEMORY_BASIC_INFORMATION region = { };
++        if (++regions > 4096
++            || VirtualQuery(reinterpret_cast<void*>(cursor), &region, sizeof(region)) != sizeof(region))
++            return false;
++        uintptr_t start = reinterpret_cast<uintptr_t>(region.BaseAddress);
++        uintptr_t size = region.RegionSize;
++        if (region.AllocationBase != current.AllocationBase || region.Type != MEM_PRIVATE
++            || (region.State != MEM_RESERVE && region.State != MEM_COMMIT)
++            || start != cursor || !size || size % pageSize || size > origin - cursor)
++            return false;
++        uintptr_t end = cursor + size;
++        if (region.State == MEM_COMMIT) {
++            DWORD access = region.Protect & 0xff;
++            bool writable = access == PAGE_READWRITE || access == PAGE_WRITECOPY
++                || access == PAGE_EXECUTE_READWRITE || access == PAGE_EXECUTE_WRITECOPY;
++            // The bottom inaccessible page is already excluded from bounds.
++            if (!writable && !(end <= bound && access == PAGE_NOACCESS))
++                return false;
++        }
++        // The active stack, scanned by GC, must be committed and unguarded.
++        if (end > stackPointer && (region.State != MEM_COMMIT || (region.Protect & PAGE_GUARD)))
++            return false;
++        cursor = end;
++    }
++    return true;
++}
++#endif
++
++StackBounds StackBounds::currentThreadStackBoundsInternal()
++{
++#if defined(_WIN32_WINNT) && _WIN32_WINNT < 0x0602
++    uintptr_t origin = 0;
++    uintptr_t bound = 0;
++    RELEASE_ASSERT(getLegacyWindowsStackBounds(reinterpret_cast<uintptr_t>(currentStackPointer()), origin, bound));
++    return StackBounds { reinterpret_cast<void*>(origin), reinterpret_cast<void*>(bound) };
++#else
+     ULONG_PTR lowLimit = 0;
+     ULONG_PTR highLimit = 0;
+     GetCurrentThreadStackLimits(&lowLimit, &highLimit);
+@@ -203,6 +269,7 @@
+     void* origin = reinterpret_cast<void*>(highLimit);
+     void* bound = reinterpret_cast<void*>(lowLimit);
+     return StackBounds { origin, bound };
++#endif
+ }
+ 
+ #else

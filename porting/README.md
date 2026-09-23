@@ -59,9 +59,11 @@ Host Perl/Ruby build prerequisite checks pass. The actual `jsc` build now links
 `DateMath.cpp` at `GetTimeZoneInformationForYear`, now passes a focused object
 compile after the standard-timezone patch. A later focused continuation compiled
 six more generic WTF objects and the patched Windows file-handle object. The
-next explicitly tested object, `StackBounds.cpp`, fails at
-`GetCurrentThreadStackLimits`. No `jsc.exe` or engine was produced. See
-[DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md) and the
+next explicitly tested object, `StackBounds.cpp`, now compiles after a validated
+legacy metadata fallback. `win/ThreadingWin.cpp` then fails at MSVC SEH and
+SRW/condition-variable APIs. No `jsc.exe` or engine was produced. See
+[DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
+[STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
 
 The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
@@ -108,6 +110,10 @@ complete the Win9x OS abstraction.
 - `webkit-2.54.0-pre-vista-truncate.patch`: preserves file cursor and primary
   failure errors around a pre-Vista `SetEndOfFile` fallback. The full object
   compiles; ME/NT5 boundary probes pass, actual filesystem guest test is pending.
+
+- `webkit-2.54.0-legacy-stack-bounds.patch`: validates common TIB/VirtualQuery
+  allocation metadata on pre-Windows8 builds, preserving the modern API. Exact
+  host fixtures and actual object compile pass; FS/TIB guest behavior is pending.
 
 ## Allocator probes
 
@@ -159,7 +165,7 @@ porting evidence:
 | `Source/cmake/OptionsJSCOnly.cmake` | Forces `_WIN32_WINNT=0x0A00` / Windows 10 declarations; needs a genuine Win9x platform selection, not just an extra compiler flag. |
 | `Source/cmake/OptionsCommon.cmake` | C++23; compiler can target x86 but its CRT and thread-local destruction support must also run on ME. |
 | `WTF/wtf/ThreadingPrimitives.h`, `win/ThreadingWin.cpp` | SRW mutexes and condition variables, MSVC structured exception syntax, and C++ `thread_local` cleanup. Needs tested ME mutex/condition/thread backend. |
-| `WTF/wtf/StackBounds.cpp` | Unconditional Windows `GetCurrentThreadStackLimits`; ME needs correct main/worker stack bounds including guard-page behavior. |
+| `WTF/wtf/StackBounds.cpp` | Pre-Windows8 metadata fallback compiles and passes host cases. Main/worker growth, FS/TIB and collector behavior remain actual guest gates. |
 | `WTF/wtf/win/FileHandleWin.cpp` | Pre-Vista truncation fallback now compiles and passes boundary tests. Unicode/file-path and actual filesystem behavior remain guest gates. |
 | `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME standard-offset query passes; separate seasonal conversion remains unverified. See `DATE-OFFSET.md`. |
 | `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |

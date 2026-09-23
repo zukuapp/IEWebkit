@@ -56,6 +56,14 @@
       "after_sha256": "dee0f441c2964c070761e840971c3c59e2c292a4282b3ae7c2bdffcdfe03a298",
       "patch_sha256": "6ceb93187b818eb97f9db9ad452ff5a89d391a33253a0468b05ecca4bf023c56",
       "reason": "Pre-Vista file truncate using SetEndOfFile with preserved cursor and primary error; Vista+ API unchanged."
+    },
+    {
+      "path": "Source/WTF/wtf/StackBounds.cpp",
+      "patch": "patches/webkit-2.54.0-legacy-stack-bounds.patch",
+      "before_sha256": "24b4e3f2bd1ecd927682a82ac0a72614565a55854f92d2c7beeb336415a378a2",
+      "after_sha256": "872a54107ed478ab403de03c1bd31226e82afd66aa83332dcf4ed375a402fe04",
+      "patch_sha256": "66d9f1ff77cf61f2e2c78ea9966f2107c983e9e8b39c9df508f79d7fbf37c63f",
+      "reason": "Pre-Windows8 validated TIB/VirtualQuery stack allocation bounds, preserving modern API and failing closed on inconsistent metadata."
     }
   ]
 }

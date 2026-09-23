@@ -1,0 +1,2 @@
+# Unified-diff context lines contain one required space; these are syntax.
+porting/patches/*.patch whitespace=-blank-at-eol,-blank-at-eof

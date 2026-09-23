@@ -28,7 +28,7 @@ archives belong in an external build directory, not this repository.
 ## Reproduce the first build stage
 
 Prerequisites: Python 3.12+, CMake, Ninja, i686 MinGW GCC/G++, Perl with English,
-FindBin and JSON::PP, Ruby 2.5+, and a target x86 ICU 70.1+ build (data/i18n/uc).
+FindBin, JSON::PP and bigint, Ruby 2.5+, and a target x86 ICU 70.1+ build (data/i18n/uc).
 The observed compiler was i686-w64-mingw32 GCC/G++ 15.1.1.
 
 ```
@@ -68,6 +68,11 @@ The subsequent complete WTF static archive build succeeds; a real-WTF caller
 links after fixing Windows SDK library dependencies. See [WTF-LINK.md](WTF-LINK.md).
 The JSC shell's WinMM import-library name has a separate reproducible link fix;
 see [JSC-SHELL-LINK.md](JSC-SHELL-LINK.md).
+The static JSC offset generator and low-level interpreter now compile after
+repairing their target-specific symbol visibility; the next full build stops
+at a missing host Perl `bigint.pm` prerequisite. See
+[JSC-STATIC-VISIBILITY.md](JSC-STATIC-VISIBILITY.md) for the source, build and
+PE import evidence.
 No `jsc.exe` or engine was produced. See
 [DATE-OFFSET.md](DATE-OFFSET.md), [FILE-TRUNCATE.md](FILE-TRUNCATE.md),
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the

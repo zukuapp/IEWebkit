@@ -128,6 +128,14 @@
       "after_sha256": "47f618a3f2aba2abf0f4bff32c1a9486da7762f923a46a8324af537b5a81bf11",
       "patch_sha256": "dea43cbc69b67acc46161eeb8bf523db7e00da9640f8f3a2e0b942f13581e660",
       "reason": "Use canonical lowercase WinMM import-library spelling for case-sensitive MinGW link hosts; Windows behavior unchanged."
+    },
+    {
+      "path": "Source/JavaScriptCore/CMakeLists.txt",
+      "patch": "patches/webkit-2.54.0-jsc-static-offsets.patch",
+      "before_sha256": "60ea0825f56f7e8e7634ca3536935d9a157de46f3b0d1a6354dceb70a3373b25",
+      "after_sha256": "3363b9cf78f1ed870a7e406228a351a6d794500303fe02a0c3c1cce59130f289",
+      "patch_sha256": "1709cd8f61be3adea89003e1b764c621948defefdf9d42b13b5457c550110ce7",
+      "reason": "Give the Win9x static-JSC offset generator and interpreter object library static JSC symbol visibility; avoid dllimport on inline JSC definitions."
     }
   ]
 }

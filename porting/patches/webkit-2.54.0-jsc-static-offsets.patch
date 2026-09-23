@@ -1,0 +1,25 @@
+--- a/Source/JavaScriptCore/CMakeLists.txt
++++ b/Source/JavaScriptCore/CMakeLists.txt
+@@ -463,6 +463,11 @@
+ )
+ set_property(TARGET LLIntOffsetsExtractor PROPERTY SKIP_CODESIGN YES)
+ WEBKIT_EXECUTABLE(LLIntOffsetsExtractor)
++if (IEWEBKIT_WIN9X AND ENABLE_STATIC_JSC)
++    # The offset generator includes inline JSC definitions but does not link JSC.
++    # Give it the same static-library visibility contract as the final shell.
++    target_compile_definitions(LLIntOffsetsExtractor PRIVATE STATICALLY_LINKED_WITH_JavaScriptCore)
++endif ()
+ 
+ # The build system will execute asm.rb every time LLIntOffsetsExtractor's mtime is newer than
+ # LLIntAssembly.h's mtime. The problem we have here is: asm.rb has some built-in optimization
+@@ -495,6 +500,10 @@
+ # single source file, so we need to create a separate target for it.
+ add_library(LowLevelInterpreterLib OBJECT llint/LowLevelInterpreter.cpp
+     ${JavaScriptCore_DERIVED_SOURCES_DIR}/${LLIntOutput})
++if (IEWEBKIT_WIN9X AND ENABLE_STATIC_JSC)
++    # This object library also includes inline JSC definitions for the static engine.
++    target_compile_definitions(LowLevelInterpreterLib PRIVATE STATICALLY_LINKED_WITH_JavaScriptCore)
++endif ()
+ 
+ # WebAssembly generator
+ 

@@ -46,6 +46,7 @@ and [MIME association model](https://learn.microsoft.com/en-us/windows/win32/msi
 Whether IE5.5 selects this DocObject for the fixture remains an actual guest test;
 cross-compilation and COM registration alone cannot prove browser activation.
 
-At packaging, **guest_verified=false**. Any successful local guest test proves
-only this subset's IE in-place display. The separately developed verified native
+The local subset display passed an actual Windows ME / IE5.5 guest test; see
+[GUEST-R5.md](GUEST-R5.md). IE6 and remote page support remain unverified. This
+lab result proves only in-place display of the fixed local fixture. The native
 TLS transport and a complete engine remain necessary for remote ZUKU pages.

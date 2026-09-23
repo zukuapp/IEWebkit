@@ -73,7 +73,18 @@ or JSC links or runs.
 The static x86 native fixture passes the pinned ME DLL import audit with no gaps,
 SHA-256 `e2d3a7af8e02190ff147d969459afaf0324e3c710df7ff4d766f023a61bf0eb3`.
 It is built to test four real workers, broadcast, 20,000 increments and timed
-wait/reacquisition, logging `C:\SYNCDIAG.LOG`. It has **not executed in a guest**.
+wait/reacquisition, logging `C:\SYNCDIAG.LOG`.
+
+On the actual Windows ME 4.90.3000 guest with IE5.5, the fixture ran from a
+read-only ISO in a no-NIC QEMU overlay. ISO SHA-256:
+`8988f0b922c935f786d646b9635fd8e11a3d44632ef68926dbf33faee3135a18`.
+The fixed launcher recorded `launched=1`, `wait=0`, and `exit.code=0`. The
+guest-created `SYNCDIAG.LOG` (pulled via the bounded COM1 QA channel; SHA-256
+`45bb980af467d09b14dd5d713edcc3c2b0f2e9f8962f30579bd92f966c2b0ee1`)
+recorded `counter=0x4e20` (20,000), `timeout=1`, `reacquired=1`,
+`last_error=0`, and `exit=0`. The VM drive listing and launcher log are stored
+under `/srv/zuku/deploy-work/20260924-legacy-sync/`. This is an actual ME
+runtime pass for this native fixture, not an entire WTF/JSC link or engine test.
 The event shim, sanitizer pass and import table do not certify ME event/scheduler
 behavior, thread TLS cleanup, suspend/resume or engine garbage-collector races.
 The actual object still references other thread APIs such as `SwitchToThread`

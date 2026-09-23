@@ -18,7 +18,7 @@ jobs:
       - name: Install cross-compiler
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc g++ make gcc-mingw-w64-i686 g++-mingw-w64-i686
+          sudo apt-get install -y gcc g++ make gcc-mingw-w64-i686 g++-mingw-w64-i686 gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64
       - name: Validate target selection and external build paths
         run: |
           python3 tools/variants.py validate
@@ -26,3 +26,8 @@ jobs:
           python3 -m unittest discover -s porting/tests -p 'test_*.py'
       - name: Test native contract and cross-compile IE host and lifecycle harness
         run: make -C host test docobject lifecycle-test-binary
+      - name: Build representative IE and OS hosts with distinct metadata
+        run: |
+          python3 tools/build_host_variant.py --profile ie55-winme --arch x86 --mode classic --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
+          python3 tools/build_host_variant.py --profile ie11-win7-sp1 --arch x86 --mode protected --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
+          python3 tools/build_host_variant.py --profile ie11-win7-sp1 --arch x64 --mode protected --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"

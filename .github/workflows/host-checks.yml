@@ -10,7 +10,7 @@ permissions:
 jobs:
   host:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -25,10 +25,23 @@ jobs:
           python3 -m unittest discover -s test -p 'test_*.py'
           python3 -m unittest discover -s porting/tests -p 'test_*.py'
       - name: Test native contract and cross-compile IE host and lifecycle harness
-        run: make -C host test docobject lifecycle-test-binary
+        run: make -C host test docobject lifecycle-test-binary navigation-test-binary navigation-adapter
+      - name: Test the diagnostic renderer and compile its Windows component
+        run: make -C renderer test sanitize win32
       - name: Build and inspect every declared IE, OS, architecture and mode
         run: |
           python3 tools/build_host_matrix.py --jobs 2 --version 0.1.0.0 --work-dir "$RUNNER_TEMP/iewebkit-hosts"
+      - name: Verify revision-bound development packaging and checksums
+        run: |
+          python3 tools/package_dev_release.py \
+            --matrix "$RUNNER_TEMP/iewebkit-hosts/matrix-all.json" \
+            --output-dir "$RUNNER_TEMP/iewebkit-package" \
+            --tag v0.1.0-dev.ci \
+            --revision "$GITHUB_SHA" \
+            --runtime-notice /usr/share/doc/gcc-mingw-w64-base/copyright \
+            --runtime-notice /usr/share/doc/mingw-w64-common/copyright
+          cd "$RUNNER_TEMP/iewebkit-package"
+          sha256sum -c SHA256SUMS
       - name: Retain development metadata and hashes (no engine or guest certification)
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -39,5 +52,7 @@ jobs:
             ${{ runner.temp }}/iewebkit-hosts/*/build.json
             ${{ runner.temp }}/iewebkit-hosts/*/pe-verification.json
             ${{ runner.temp }}/iewebkit-hosts/*.failed.log
+            ${{ runner.temp }}/iewebkit-package/release-metadata.json
+            ${{ runner.temp }}/iewebkit-package/SHA256SUMS
           if-no-files-found: warn
           retention-days: 14

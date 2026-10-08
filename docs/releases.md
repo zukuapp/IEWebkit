@@ -27,7 +27,9 @@ GitHub development prerelease. No `--release` target gate is bypassed.
 ## Reproduce and verify
 
 Use a fresh standalone checkout, Python 3.12+, GCC/G++, Make and both x86/x64
-MinGW-w64 toolchains. Keep all outputs in a new directory outside the checkout.
+MinGW-w64 toolchains. Keep matrix, source archive and release package outputs in
+new directories outside the checkout. Native Makefile checks use their ignored
+`build/` subdirectories.
 
 ```sh
 git clone https://github.com/zukuapp/IEWebkit.git

@@ -1,6 +1,6 @@
 # ICU dependency bootstrap
 
-This builds current ICU4C for an x86 **compile bootstrap**. ICU's unmodified
+This builds current ICU4C for an x86 compile bootstrap. ICU's unmodified
 MinGW configuration selects Windows 7 APIs. Its output must not be installed
 or advertised as a working Windows ME dependency.
 
@@ -107,7 +107,7 @@ Two exact-source patches under `icu-patches.json` add opt-in
 
 The registry layout and shorter Win9x zone names follow ICU's own earlier
 [Win9x implementation](https://github.com/unicode-org/icu/blob/409ddcd4596f13863e7c9ec20f48f2fc0021fffc/icu4c/source/common/wintz.c).
-The engine still uses ICU **78.3** data and algorithms; no historic ICU binary
+The engine still uses ICU 78.3 data and algorithms; no historic ICU binary
 or data replacement is used. Source licensing and pinned provenance remain as
 documented above.
 

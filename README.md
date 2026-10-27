@@ -16,22 +16,27 @@
 
 # IEWebkit
 
-A site-independent WebKit and JavaScriptCore engine being ported into Internet
-Explorer's document host. Official source repository:
+![version](https://img.shields.io/badge/version-v27.26102701-informational)
+
+IEWebkit is a site-independent WebKit and JavaScriptCore engine being ported into
+Internet Explorer's document host. Official source repository:
 `https://github.com/zukuapp/IEWebkit`.
 
-The [development prerelease](https://github.com/zukuapp/IEWebkit/releases/tag/v0.1.0-dev.20261008)
-provides the complete repository source and separately labelled development host
-components for all 17 profiles / 55 architecture and security-mode combinations.
-See [release contents and reproduction](docs/releases.md) and the
-[changelog](CHANGELOG.md). These host DLLs do not include WebKit or JavaScriptCore.
+Current version: `v27.26102701`. See the [changelog](CHANGELOG.md).
 
-**Development status: no complete browser engine or certified IE variant is
-available yet.** The native engine contract and loader have host tests and
-cross-compiled development hosts for all 55 declared combinations. WebKit source
-preparation is reproducible; the ME engine
-port still needs dependencies and Windows API adaptations. Those checks are not
-proof that websites render in Internet Explorer.
+## Status
+
+No complete browser engine or certified IE variant is available. The native
+engine contract and loader have host tests and cross-compiled development hosts
+for all 55 declared combinations. WebKit source preparation is reproducible. The
+ME engine port still needs dependencies and Windows API adaptations. These checks
+do not show that websites render in Internet Explorer.
+
+The published [development prerelease](https://github.com/zukuapp/IEWebkit/releases/tag/v0.1.0-dev.20261008)
+contains the complete repository source and separately labelled development host
+components for all 17 profiles / 55 architecture and security-mode combinations.
+These host DLLs do not include WebKit or JavaScriptCore. See
+[release contents and reproduction](docs/releases.md).
 
 ## Product boundary
 
@@ -45,7 +50,17 @@ validated networking. It must work with general sites without requiring their
 servers to embed an OBJECT element. ZUKU-specific API/UI code stays in
 `zukuapp/zuku-platform`; this repository has no dependency on that checkout.
 
-## Layout
+## Requirements
+
+- Python 3.12+.
+- GCC, G++ and Make.
+- MinGW-w64 cross toolchains for x86 (`i686-w64-mingw32-`) and x64
+  (`x86_64-w64-mingw32-`).
+
+CI runs on `ubuntu-24.04` (`.github/workflows/host-checks.yml`). The engine port
+has additional prerequisites; see [porting evidence](porting/README.md).
+
+## Repository layout
 
 - `include/`: versioned engine ABI.
 - `host/`: engine validation/loader and IE document host integration.
@@ -57,6 +72,13 @@ servers to embed an OBJECT element. ZUKU-specific API/UI code stays in
 - `tools/package_dev_release.py`: digest-checked development host packaging.
 - `test/`: host-side checks; guest certification is a separate requirement.
 
+Source archives, Windows media, keys, credentials, machine logs and compiled
+outputs are excluded from Git.
+
+## Usage
+
+Validate target selection and run the host checks:
+
 ```sh
 python3 tools/variants.py validate
 python3 tools/variants.py select --ie 5.5 --os winme --arch x86 --mode classic
@@ -67,13 +89,16 @@ make -C renderer test sanitize win32 preview
 ```
 
 Target selection describes development configurations. Adding `--release`
-requires a reviewed guest verification record; currently every target is
-unverified and release selection correctly fails. No installer should silently
-substitute another browser version, bitness or security mode.
+requires a reviewed guest verification record. Every target is unverified, so
+release selection fails. An installer must not silently substitute another
+browser version, bitness or security mode.
 
-See [porting evidence](porting/README.md) and
-[compatibility policy](docs/compatibility.md). For a specific IE/OS host build,
-use [the variant builder](docs/build-variants.md). The lifecycle harness has
-run in a real Windows ME guest; its scope and evidence are in
-[the host notes](host/README.md). Source archives, Windows media,
-keys, credentials, machine logs and compiled outputs are excluded from Git.
+To build a host for a specific IE/OS target, use
+[the variant builder](docs/build-variants.md). Target policy is in
+[compatibility policy](docs/compatibility.md). The lifecycle harness has run in
+a real Windows ME guest; its scope and evidence are in
+[the host notes](host/README.md).
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).

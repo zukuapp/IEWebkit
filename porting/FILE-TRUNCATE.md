@@ -42,7 +42,7 @@ The complete actual WTF object now compiles with one job. SHA-256:
 The native x86 probe links and passes the pinned ME DLL import audit with zero
 gaps, SHA-256:
 `babb94a70888b3f8bb9eb04aab8394d1ae9bf74d00549ea98491a97003f62e57`.
-It has **not run in a guest**. It uses `CREATE_NEW` for `C:\IEWKTRNC.TMP`, fails
+It has not run in a guest. It uses `CREATE_NEW` for `C:\IEWKTRNC.TMP`, fails
 if that path already exists, deletes its own fixture on completion and writes
 `C:\TRUNCDIAG.LOG`. It checks small actual file sizes and cursor preservation;
 the host mock's 64-bit case does not establish FAT32 capacity.

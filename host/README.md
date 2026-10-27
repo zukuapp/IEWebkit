@@ -23,9 +23,9 @@ Registration creates only the new COM class and
 `application/x-iewebkit-document` MIME association. It does not overwrite
 `text/html`, Trident's CLSID, or global HTTP/HTTPS handlers. A version adapter must
 select this DocObject on actual top-level browser navigation. The experimental
-[IE5.5 navigation adapter](NAVIGATION.md) now has a separate offline guest
-activation checkpoint. A complete engine and remaining navigation gates are
-still required; this DLL alone does not replace Trident.
+[IE5.5 navigation adapter](NAVIGATION.md) has a separate offline guest
+activation checkpoint. This DLL alone does not replace Trident; that requires a
+complete engine and the remaining navigation gates.
 
 ## Remaining integration gates
 

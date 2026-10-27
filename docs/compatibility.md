@@ -2,7 +2,7 @@
 
 IEWebkit has seven IE adapter families: IE 5.5, 6, 7, 8, 9, 10 and 11. Their
 packaging IDs additionally distinguish Windows generation and the bitness of
-the **IE content process**, not just the OS. IE6 on ME and IE6 on XP are separate
+the IE content process, not just the OS. IE6 on ME and IE6 on XP are separate
 targets. Shared engine source does not make their runtime APIs interchangeable.
 
 `variants.json` is a development target matrix, not a support announcement or

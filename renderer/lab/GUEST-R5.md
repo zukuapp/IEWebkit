@@ -1,6 +1,6 @@
 # Windows ME / IE5.5 subset display, R5
 
-This is evidence for the **local HTML/CSS subset lab**, not the WebKit engine,
+This is evidence for the local HTML/CSS subset lab, not the WebKit engine,
 remote ZUKU, HTTPS or JavaScript. On 2026-09-23, an actual Korean Windows ME
 guest reported Windows 4.90 build 3000, IE 5.50.4134.0100, ACP/OEMCP 949 and a
 640×480 desktop through the private COM1 QA helper.
@@ -9,7 +9,7 @@ The guest used a fresh qcow2 overlay of the sealed IE5.5 QA baseline
 (`/srv/hv/compat/overlays/winme-ie55-serial-qa-20260923.qcow2`, SHA-256
 `4c6d261a2fd5f0b9a90149abe2d3f7e874c53c5f4947f850e8780b495b9412af`).
 QEMU 10.1.5 used `pc-i440fx-4.2`, KVM, Pentium III, 256 MiB, one CPU,
-`-vga cirrus`, loopback VNC and **no NIC**. This records visible Cirrus output,
+`-vga cirrus`, loopback VNC and no NIC. This records visible Cirrus output,
 not 3D acceleration. The ISO `iewk-paint-r5.iso` has SHA-256
 `d31f89692364dc2c2471e47c75ee0ab39e6d9f32830ee738cd642272b54f9d88`.
 Its DLLs were checked against checksum-pinned ME exports before boot:
@@ -22,7 +22,7 @@ Its DLLs were checked against checksum-pinned ME exports before boot:
 | `DEMO.IWK` | `3d8ec9bee10f6650d6fb8bd60080f730662da4d0503c3081abbd40ae3aed2523` |
 
 The guest opened the ISO as D:, ran `SUBSETUP.EXE`, then displayed
-`C:\IEWKSUB\DEMO.IWKSUBSET` **inside Internet Explorer**. The title bar, IE
+`C:\IEWKSUB\DEMO.IWKSUBSET` inside Internet Explorer. The title bar, IE
 menus/address bar and HTML/CSS heading/card were visible in
 `r5-ie-initial.png` (SHA-256
 `e3d28c587cc6783919faf816705841ca6c6973e487d363c520c0cdfd8c401a35`).

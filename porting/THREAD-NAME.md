@@ -12,7 +12,7 @@ same mandatory `initializeCurrentThreadEvenIfNonWTFCreated` call. It never
 raises the synthetic naming exception without a matching SEH handler and does
 not pretend C++ `catch` handles Windows SEH.
 
-The fallback is **diagnostic output, not a debugger thread label**. No
+The fallback is diagnostic output, not a debugger thread label. No
 `SetThreadDescription` dependency is added; registration of thread names in
 newer OS tools remains separate work. Microsoft's
 [OutputDebugStringA contract](https://learn.microsoft.com/en-us/windows/win32/api/debugapi/nf-debugapi-outputdebugstringa)
@@ -49,6 +49,6 @@ adds host behavioral evidence; actual guest thread behavior remains unverified.
 The static ME naming fixture passes the pinned import audit with zero gaps;
 it imports `OutputDebugStringA` and no `RaiseException`. SHA-256:
 `9f509c809129f63a8771779eaab8717b32c157e4a71c4b2e21ef6ce34fa58078`.
-It writes `C:\NAMEDIAG.LOG`; it has **not run in a guest**, and no debugger
+It writes `C:\NAMEDIAG.LOG`; it has not run in a guest, and no debugger
 attachment or full WTF thread lifetime has been tested.
 External evidence: `/srv/zuku/deploy-work/20260924-thread-name/`.

@@ -2,7 +2,7 @@
 
 The pinned WebKit 2.54.0 `DateMath.cpp` failed to compile for ME because it
 unconditionally called `GetTimeZoneInformationForYear`. That function requires
-Vista SP1 or later. It returns a Boolean success value and requires a **local**
+Vista SP1 or later. It returns a Boolean success value and requires a local
 year. The original code instead treated its result as `TIME_ZONE_ID_*` and
 supplied the UTC year. See Microsoft's
 [API contract](https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-gettimezoneinformationforyear).

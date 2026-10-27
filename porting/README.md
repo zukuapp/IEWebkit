@@ -9,13 +9,13 @@ does not satisfy the full-engine objective.
 
 ## Pinned upstream
 
-- Official source release: WebKitGTK **2.54.0**, published 2026-09-16.
+- Official source release: WebKitGTK 2.54.0, published 2026-09-16.
 - WebKit Git tag: `webkitgtk-2.54.0`.
 - Corresponding source commit: `5220e80b97a253c60ed899361654142ab5021998`.
 - Archive SHA-256: `846fd19ccedbae1dbfe904f26dbf2d68a800a33a50caf2ad5222c8dcb3f25682`.
 - The checksum was compared with the [official release sums](https://webkitgtk.org/releases/webkitgtk-2.54.0.tar.xz.sums).
 - The GTK source archive omits Windows platform implementation files. The
-  bootstrap supplements **30** precisely pinned Windows WTF/JSC/CMake files
+  bootstrap supplements 30 precisely pinned Windows WTF/JSC/CMake files
   from the same commit. Every supplement has its own SHA-256 in
   `webkit-source.json`; it is not fetched from a moving branch.
 
@@ -41,7 +41,7 @@ cmake --build /absolute/external/build-area/build-me-jsc --target jsc --parallel
 
 The bootstrap does not overwrite an existing unrecognized source tree. A
 successful tree has a pin stamp and can subsequently carry deliberate patches.
-The configure profile is an **interpreter bootstrap**, with JIT, remote inspector,
+The configure profile is an interpreter bootstrap, with JIT, remote inspector,
 and WebAssembly disabled and bundled mimalloc selected. It is not a final product
 feature profile. Upstream explicitly marks `ENABLE_WEBASSEMBLY` and `ENABLE_C_LOOP`
 as conflicting options (`Source/cmake/WebKitFeatures.cmake`), so modern WASM on
@@ -78,7 +78,7 @@ No `jsc.exe` or engine was produced. See
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
 
-The ICU dependency bootstrap is now available in `build-icu-x86.sh`; its
+The ICU dependency bootstrap is `build-icu-x86.sh`; its
 unmodified upstream profile uses Windows 7 declarations and must not be treated
 as a Windows ME runtime port. A separate opt-in Win9x dependency profile now
 builds; its expanded native probe passes the ME import audit and the actual
@@ -163,7 +163,7 @@ The native host pair test passed packing, failed CAS, concurrent CAS/load/store
 and final counter checks. The Pentium III x86 fixture emits `cmpxchg8b` without a
 libatomic dependency. Both ME-target fixtures pass the pinned ME import audit.
 The modern-declaration lock regression build retains its SRW imports. The build
-script does **not** execute Windows binaries or certify the ME guest.
+script does not execute Windows binaries or certify the ME guest.
 
 `pas-pair-smoke.exe` checks pair layout, alignment and concurrent updates.
 `mimalloc-lock-smoke.exe` checks try-lock failure from another thread, blocking
@@ -202,7 +202,7 @@ porting evidence:
 | `WTF/wtf/StackBounds.cpp` | Pre-Windows8 metadata fallback compiles and passes host cases. Main/worker growth, FS/TIB and collector behavior remain actual guest gates. |
 | `WTF/wtf/win/FileHandleWin.cpp` | Pre-Vista truncation fallback now compiles and passes boundary tests. Unicode/file-path and actual filesystem behavior remain guest gates. |
 | `WTF/wtf/DateMath.cpp` | Standard-offset patch passes isolated compilation and host regression probes. Actual ME standard-offset query passes; separate seasonal conversion remains unverified. See `DATE-OFFSET.md`. |
-| `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is **not** an x86 gap. Keep the existing QPC sanity checks. |
+| `WTF/wtf/CurrentTime.cpp` | Already uses `GetTickCount()` on i386; `GetTickCount64` is not an x86 gap. Keep the existing QPC sanity checks. |
 | `WTF/wtf/PlatformJSCOnly.cmake` | Links `synchronization`, DbgHelp and other Windows libraries; a Win9x port must remove/replace unavailable services. |
 | `Source/cmake/OptionsWin.cmake` | Defaults to Skia in this pinned revision; a Cairo branch remains with `USE_SKIA=OFF`. Full WebCore additionally requires curl, HarfBuzz, ICU, JPEG, XML, OpenSSL, PNG, SQLite, zlib, PSL and WebP, plus a port of the Windows view/event layer. |
 

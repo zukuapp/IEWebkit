@@ -6,8 +6,8 @@ python3 tools/build_host_matrix.py --jobs 2 --work-dir /external/new-host-build
 python3 tools/verify_host_pe.py /external/new-host-build/ie55-winme-x86-classic-host-v0.1.0.0
 ```
 
-The current manifest has **17 IE/OS profiles and 55 architecture/security-mode
-combinations**. The matrix expands the manifest instead of selecting a
+The current manifest has 17 IE/OS profiles and 55 architecture/security-mode
+combinations. The matrix expands the manifest instead of selecting a
 representative architecture or silently dropping Protected Mode variants.
 `--profile ie11-win81` builds all six combinations for that profile. Use a new
 external directory for each run; existing artifacts are never overwritten.

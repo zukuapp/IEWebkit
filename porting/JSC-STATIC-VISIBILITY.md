@@ -42,7 +42,7 @@ host cross-build checkpoint, not a Windows ME runtime result.
 
 The linked `LLIntOffsetsExtractor.exe` SHA-256 is
 `4a72b71ca874e976c0732bc412bb561c720534ad18244d77d4694b0efe24e59d`.
-Its pinned Windows ME export audit **fails** because it imports
+Its pinned Windows ME export audit fails because it imports
 `libgcc_s_dw2-1.dll`, which is absent from the pinned OS baseline. The earlier
 `LLIntSettingsExtractor.exe` has the same import gap. These are build-time
 offset tools; they have not run on ME or been included in a guest client. The

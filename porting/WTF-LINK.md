@@ -10,7 +10,7 @@ patches. Continuation used one compiler worker and bounded 180/240-second
 batches. No additional WTF compiler error appeared after the PathWalker include
 fix; the final batch created `lib/libWTF.a`.
 
-A small caller of the **actual archive's** `WTF::RandomDevice` then exposed:
+A small caller of the actual archive's `WTF::RandomDevice` then exposed:
 
 1. `cannot find -lDbgHelp`: a case-sensitive MinGW SDK contains `libdbghelp.a`.
 2. After correcting that spelling, the linked executable imported `Sleep` from
@@ -19,8 +19,8 @@ A small caller of the **actual archive's** `WTF::RandomDevice` then exposed:
    a successful archive build had not detected this loader dependency.
 
 The patches to `Source/WTF/wtf/PlatformJSCOnly.cmake` and `PlatformWin.cmake`
-use canonical `dbghelp` spelling and remove `synchronization` **only when the
-existing explicit `IEWEBKIT_WIN9X` option is enabled**. Kernel32 supplies Sleep
+use canonical `dbghelp` spelling and remove `synchronization` only when the
+existing explicit `IEWEBKIT_WIN9X` option is enabled. Kernel32 supplies Sleep
 for this profile. Other profiles retain their dependency list and ordering;
 no API-set replacement DLL, OS-version spoofing or weak RNG fallback is added.
 If an unsupported synchronization API remains elsewhere in the full engine,
@@ -65,7 +65,7 @@ python3 porting/audit-pe-imports.py \
 
 Repeat with `PlatformWin-win9x-wtf-random.exe`. The probe invokes a real WTF
 method, but linker archive selection and section collection include only its
-reachable code. This does **not** import-audit all of WTF, bmalloc, ICU or JSC.
+reachable code. This does not import-audit all of WTF, bmalloc, ICU or JSC.
 The archive is the JSCOnly WTF build in both cases; testing the Windows dependency
 list does not constitute a WebCore/Windows engine build.
 

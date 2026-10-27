@@ -2,7 +2,7 @@
 
 `tools/build_host_variant.py` compiles and links the native document host for a
 selected profile in `variants.json`. It uses the exact IE version, Windows
-profile, **content-process** architecture and security mode. The result is a
+profile, content-process architecture and security mode. The result is a
 host DLL and object files, not a WebKit engine, installer, or compatibility
 certification. The mode identifies the intended adapter target; it does not
 claim that Protected Mode or AppContainer integration has been implemented.

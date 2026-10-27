@@ -1,7 +1,7 @@
 # Incremental HTML/CSS subset prototype
 
 This is an original, small parser/layout implementation and a Win32 child view.
-It is **not WebKit**, JavaScriptCore, a complete browser engine, or a release
+It is not WebKit, JavaScriptCore, a complete browser engine, or a release
 candidate. It deliberately does not export `IEWebKitGetEngineV1`, so the normal
 DocObject engine capability gate cannot mistake it for a complete provider.
 
@@ -25,7 +25,7 @@ against the actual document URL and enforce navigation policy. It is never given
 native file access or called from page JavaScript.
 
 `build/example.svg` is an inspectable paint-list preview of `example.html` using
-an approximate host font metric. It is **not an IE/GDI screenshot**. The Win32
+an approximate host font metric. It is not an IE/GDI screenshot. The Win32
 view measures and paints with real GDI font metrics. `subset.h` is the portable
 API; `win32_view.h` describes trusted native embedding. The DLL exports use the
 Win32 `WINAPI` calling convention; the optional callback uses the C default
@@ -75,8 +75,8 @@ plus a deterministic malformed-byte corpus. The cross-linked DLL imports were
 compared with checksum-pinned actual Windows ME OEM DLL exports; this static gate
 does not establish that each exported API works at runtime.
 
-At the initial prototype checkpoint, **guest_verified=false** and
-**full_engine_included=false**. A local DocObject lab test, an eventual verified
+At the initial prototype checkpoint, `guest_verified=false` and
+`full_engine_included=false`. A local DocObject lab test, an eventual verified
 remote-byte integration, and complete WebKit/JS engine execution are separate
 acceptance gates. No remote-site or IE-version compatibility pass follows from
 these host tests or the SVG preview.

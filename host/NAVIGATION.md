@@ -1,6 +1,6 @@
 # IE5.5 remote navigation development checkpoint
 
-The host prototype now includes a separate Browser Helper Object and a
+The host prototype includes a separate Browser Helper Object and a
 process-local URLMon HTTPS handoff. They select the existing IEWebkit DocObject
 for an eligible top-level navigation without a local HTML launch page, server
 `OBJECT` tag, address-bar editing, or global HTTPS registry override.
@@ -53,13 +53,13 @@ provided.
 
 `make -C host navigation-diagnostic` additionally builds `NAVBHO.DLL` and
 `IEWKHOST.DLL`. In a disposable offline guest only, register both with
-`regsvr32 /s`, start the installed **Internet Explorer** executable directly at
+`regsvr32 /s`, start the installed Internet Explorer executable directly at
 `https://www.zuzunza.com/`, and capture `C:\ZUKUQA\IENAV.LOG` plus the visible IE
 window. Close IE and unregister both DLLs with `regsvr32 /u /s` afterward.
 No HTTP bootstrap or public TLS change is needed to test class selection.
 
 `make -C host navigation-adapter` builds the normal development adapter with the
-engine-availability gate enabled. It is still a prototype, not an installer or
+engine-availability gate enabled. It is a prototype, not an installer or
 a certified release.
 
 ## Actual Windows ME / IE5.5 result

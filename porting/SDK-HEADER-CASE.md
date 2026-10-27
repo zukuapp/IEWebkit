@@ -53,7 +53,7 @@ The linked probe's imports all exist in the pinned ME DLL baseline:
 - Probe: `57b1966be092322141cf7f8bd735c46e4e79c22622254acc2b237d961fabf3d0`
 - Baseline manifest: `38cdb3eaadce250b5ec96234a92a14c6a258920e856bd94fc95c5e70ce82d7c9`
 
-This probe **does not link WTF or execute those APIs**. It only checks that the
+This probe does not link WTF or execute those APIs. It only checks that the
 object's direct Windows API import surface can be represented by a linked PE
 and resolved against the baseline. It does not audit unresolved C++ dependencies,
 full-engine CRT imports or filesystem behavior. Windows ME may export Unicode

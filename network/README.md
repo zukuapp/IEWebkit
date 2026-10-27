@@ -3,7 +3,7 @@
 Internet Explorer 5.5/6 cannot be relied on for current Cloudflare TLS. The
 IEWebkit engine must make its own HTTPS connections with certificate chain and
 hostname validation, while Internet Explorer remains the visible document host.
-This directory proves one dependency path only; it is **not** a WebCore
+This directory proves one dependency path only; it is not a WebCore
 resource loader, a website renderer, or an authenticated client.
 
 The source is OpenSSL 3.5.8 from the official OpenSSL release archive. Its
@@ -82,7 +82,7 @@ and its own request, redirect, cookie, cache and credential boundary tests.
 ## Offline guest gate when ME has no working NIC
 
 `tls-offline.exe` runs a TLS handshake through an in-memory BIO pair. The server
-uses a **disposable test-only** certificate for `iewebkit.invalid`. The client
+uses a disposable test-only certificate for `iewebkit.invalid`. The client
 trusts only the matching test CA, then repeats with a wrong hostname and an
 unrelated CA; both must be rejected. It does not use guest networking or
 prove that a Cloudflare HTTPS page loads. Generate fixture keys outside Git:
@@ -152,7 +152,7 @@ source passed host positive, wrong-host and untrusted-CA checks. R17 still
 imports `CertOpenSystemStoreW` through the optional system-store provider; the
 offline probe loads an explicit PEM CA file instead. The actual R17 ME run
 launched the pinned diagnostic, but all three cases failed in `SSL_CTX_new` with
-`ERR_R_RAND_LIB`; it is **not** a TLS pass. `TLSOFF17.LOG` recorded Windows error
+`ERR_R_RAND_LIB`; it is not a TLS pass. `TLSOFF17.LOG` recorded Windows error
 `0x80090019` from the final Intel CSP fallback, which obscured the first failed
 provider call.
 

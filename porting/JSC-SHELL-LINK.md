@@ -3,8 +3,8 @@
 Upstream WebKitGTK 2.54.0 commit
 `5220e80b97a253c60ed899361654142ab5021998` lists `Winmm` in
 `Source/JavaScriptCore/shell/CMakeLists.txt`. The case-sensitive MinGW cross
-linker has `libwinmm.a`. A CMake script loaded the **actual upstream shell
-list** with only unrelated target declarations stubbed; it returned `Winmm`.
+linker has `libwinmm.a`. A CMake script loaded the actual upstream shell
+list with only unrelated target declarations stubbed; it returned `Winmm`.
 Linking a tiny `timeGetTime()` caller with that list failed with
 `cannot find -lWinmm`.
 
@@ -17,7 +17,7 @@ The patch manager verified all 16 source/patch hashes. Logs, CMake extraction,
 source and import report are in
 `/srv/zuku/deploy-work/20260924-jsc-shell-link/`.
 
-This fixes the JSC **shell dependency spelling**, not the JSC engine. `jsc.exe`
+This fixes the JSC shell dependency spelling, not the JSC engine. `jsc.exe`
 has not been built or run. The next gates are the actual JavaScriptCore target
 compile/link, a Win9x ICU prefix at final link, a complete dependency/import
 audit, and execution inside the ME guest. The linked WinMM caller has not run

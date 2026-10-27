@@ -1,6 +1,6 @@
 # Opt-in IE DocObject subset lab
 
-This is a **local file renderer diagnostic**, not remote website support,
+This is a local file renderer diagnostic, not remote website support,
 WebKit, TLS, or a release build. Build with `make -C renderer lab`.
 
 The lab reuses the production COM lifecycle with `IEWK_SUBSET_LAB` defined and
@@ -19,14 +19,14 @@ only the HTML/CSS bits and would fail the normal required-capability check.
    `SUBSETUP.EXE`, `SUBHOST.DLL`, `SUBSET.DLL`, `DEMO.IWK`.
 3. Run `D:\SUBSETUP.EXE` (substitute the guest CD drive). It copies the three
    payloads to `C:\IEWKSUB`, renames the fixture to `DEMO.IWKSUBSET`, registers
-   the distinct lab class/file type, and launches **Internet Explorer itself**
+   the distinct lab class/file type, and launches Internet Explorer itself
    using `CLSID_InternetExplorer`/`IWebBrowser2`.
 4. IE navigates to `file:///C:/IEWKSUB/DEMO.IWKSUBSET`. Keep that genuine file
    address visible. Do not put a remote address on the local fixture. A second
    launch can use IE's File/Open or its address bar with the same file URL.
 5. Collect `C:\SUBSET.LOG`, a screenshot showing IE/address/content, and the
    actual guest/IE version. `install.IE_navigate=0` means a navigation request
-   was accepted, **not** that activation or painting succeeded. Require
+   was accepted, not that activation or painting succeeded. Require
    `subset.child_created=1`, `subset.layout_ok=1`, nonzero `subset.bytes` and
    visible styled/Hangul content. Resize and keyboard-scroll the actual IE view.
 6. Close IE and check `subset.destroyed=1`. Run `SUBSETUP.EXE /remove` from the
@@ -43,8 +43,8 @@ or system HTTP/HTTPS protocol handler is registered by this installer.
 The file extension/ProgID/CLSID and MIME mappings follow Microsoft's documented
 [COM class associations](https://learn.microsoft.com/en-us/windows/win32/com/hkey-local-machine-software-classes)
 and [MIME association model](https://learn.microsoft.com/en-us/windows/win32/msi/mime-table).
-Whether IE5.5 selects this DocObject for the fixture remains an actual guest test;
-cross-compilation and COM registration alone cannot prove browser activation.
+Cross-compilation and COM registration do not establish browser activation;
+only a guest run shows whether IE5.5 selects this DocObject for the fixture.
 
 The local subset display passed an actual Windows ME / IE5.5 guest test; see
 [GUEST-R5.md](GUEST-R5.md). IE6 and remote page support remain unverified. This

@@ -14,8 +14,8 @@ pointer to identify the allocation's low address. It does not treat the moving
 TIB committed-stack limit as the reservation limit. The linked x86 fixture
 emits `mov fs:0x18` directly; it imports no `NtCurrentTeb` function.
 Microsoft's current [NtCurrentTeb page](https://learn.microsoft.com/en-us/windows/win32/api/winnt/nf-winnt-ntcurrentteb)
-does not certify ME. **FS/TIB layout and behavior on actual ME and NT5 remain an
-explicit guest gate**, even though the toolchain can generate these instructions.
+does not certify ME. FS/TIB layout and behavior on actual ME and NT5 remain an
+explicit guest gate, even though the toolchain can generate these instructions.
 
 A metadata walk validates the complete private allocation up to the stack top:
 page alignment, same allocation, nonzero forward progress, bounded arithmetic,
@@ -57,7 +57,7 @@ Its undefined symbols are only `GetSystemInfo`, `VirtualQuery` and `abort`.
 The static PentiumIII x86 fixture passes the pinned ME import audit with no
 gaps, SHA-256
 `bf03484dd8f6ac17a2faf07545251ecb3918e4ebbe4cf753760eabd29f9898df`.
-It has **not executed in a guest**. Its future runtime checks cover the main
+It has not executed in a guest. Its future runtime checks cover the main
 thread, a worker with a non-null thread-ID output, and five nested 8 KiB frames;
 it writes `C:\STACKDIAG.LOG`. Exit 50 means a boundary release assertion,
 10/11 means main/worker containment or stable bounds failed, and 12/13 means

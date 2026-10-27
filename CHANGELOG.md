@@ -1,5 +1,16 @@
 # Changelog
 
+## v27.26102701 - 2026-10-27
+
+- Documentation: normalize style across README and component documents; remove
+  decorative bold emphasis and restructure the README into status, product
+  boundary, requirements, layout, usage and changelog sections.
+- Version: adopt the unified ZUKU version label `v27.26102701` in the README
+  badge and changelog. Windows component VERSIONINFO (`0.1.0.0`) and tool
+  defaults are unchanged.
+- Accumulated changes: no source changes since `0.1.0-dev.20261008`
+  (commit `6b63507`).
+
 ## 0.1.0-dev.20261008 — 2026-10-08
 
 First public development prerelease, containing the complete standalone

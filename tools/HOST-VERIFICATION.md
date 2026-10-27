@@ -7,8 +7,7 @@ python3 tools/verify_host_pe.py /external/new-host-build/ie55-winme-x86-classic-
 ```
 
 The current manifest has 17 IE/OS profiles and 55 architecture/security-mode
-combinations. The matrix expands the manifest instead of selecting a
-representative architecture or silently dropping Protected Mode variants.
+combinations. The matrix expands every manifest combination.
 `--profile ie11-win81` builds all six combinations for that profile. Use a new
 external directory for each run; existing artifacts are never overwritten.
 Concurrency is bounded to 1–4 compiler jobs (default 2).
@@ -25,12 +24,9 @@ check rejection of mismatched architecture, metadata, truncation and resources.
 
 The reader follows Microsoft's [PE format](https://learn.microsoft.com/en-us/windows/win32/debug/pe-format)
 and [VS_VERSIONINFO layout](https://learn.microsoft.com/en-us/windows/win32/menurc/vs-versioninfo).
-It is a bounded build verifier, not a general-purpose PE loader. A zero timestamp
-does not promise identical bytes from different toolchain versions or paths.
+Different toolchain versions or paths can produce different bytes even with a
+zero timestamp.
 
-CI builds every combination and retains metadata/reports for 14 days. It does
-not publish installers or engine binaries. Every result is explicitly
-`engine_included=false`, `guest_verified=false`, `release_eligible=false`.
-Correct VERSIONINFO labels do not demonstrate Protected Mode implementation,
-OS import compatibility, DLL loading in a guest, or WebKit rendering. Those
-remain separate target-specific gates.
+CI builds every combination and retains metadata/reports for 14 days. Every
+result records `engine_included=false`, `guest_verified=false`,
+`release_eligible=false`.

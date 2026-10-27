@@ -35,7 +35,6 @@ extending, zero and 64-bit sizes, negative offset, absent handle, initial and
 target seek failures, truncation failure, restoration failure, and both failures
 with primary-error precedence. Two modern-profile checks retain the original
 API's success/failure behavior. The original body failed the pre-Vista fixture.
-These are boundary mocks, not a claimed ME/XP filesystem test.
 
 The complete actual WTF object now compiles with one job. SHA-256:
 `7693aa06635d82952fb946e830ed1032ef17780e922a34e15acedc87bbd38530`.
@@ -44,11 +43,7 @@ gaps, SHA-256:
 `babb94a70888b3f8bb9eb04aab8394d1ae9bf74d00549ea98491a97003f62e57`.
 It has not run in a guest. It uses `CREATE_NEW` for `C:\IEWKTRNC.TMP`, fails
 if that path already exists, deletes its own fixture on completion and writes
-`C:\TRUNCDIAG.LOG`. It checks small actual file sizes and cursor preservation;
-the host mock's 64-bit case does not establish FAT32 capacity.
-
-Build/probe logs are external at
-`/srv/zuku/deploy-work/20260924-file-truncate/`.
+`C:\TRUNCDIAG.LOG`. It checks small actual file sizes and cursor preservation.
 
 ## Next actual compiler gate
 
@@ -57,5 +52,4 @@ A separate focused `StackBounds.cpp` compile now fails at
 [Windows 8+ API](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getcurrentthreadstacklimits).
 The subsequent [stack checkpoint](STACK-BOUNDS.md) adds a source-tested fallback
 and passes the object compile; actual stack and collector behavior remain guest
-gates. JSC has not linked, and no engine or renderer pass follows from this
-file-operation object.
+gates.

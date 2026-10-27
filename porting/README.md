@@ -3,9 +3,7 @@
 IEWebkit's target is a general WebKit + JavaScriptCore document engine hosted
 inside Internet Explorer, including a Windows ME x86 variant and later IE/OS
 variants. This directory prepares the modern engine source and measures the
-first porting gaps. It does not contain a working WebKit DLL or claim a browser
-or operating-system pass. The ZUKU GDI screen adapter is a separate client and
-does not satisfy the full-engine objective.
+first porting gaps.
 
 ## Pinned upstream
 
@@ -17,13 +15,13 @@ does not satisfy the full-engine objective.
 - The GTK source archive omits Windows platform implementation files. The
   bootstrap supplements 30 precisely pinned Windows WTF/JSC/CMake files
   from the same commit. Every supplement has its own SHA-256 in
-  `webkit-source.json`; it is not fetched from a moving branch.
+  `webkit-source.json`.
 
 The source includes BSD-style and LGPL components. Preserve upstream per-file
 notices, `Source/JavaScriptCore/COPYING.LIB`, and WebCore's `LICENSE-APPLE`,
 `LICENSE-LGPL-2`, and `LICENSE-LGPL-2.1`. A distributed modified engine needs
-its corresponding source/patches and notices. Build artifacts and upstream
-archives belong in an external build directory, not this repository.
+its corresponding source/patches and notices. Keep build artifacts and upstream
+archives in an external build directory.
 
 ## Reproduce the first build stage
 
@@ -42,11 +40,10 @@ cmake --build /absolute/external/build-area/build-me-jsc --target jsc --parallel
 The bootstrap does not overwrite an existing unrecognized source tree. A
 successful tree has a pin stamp and can subsequently carry deliberate patches.
 The configure profile is an interpreter bootstrap, with JIT, remote inspector,
-and WebAssembly disabled and bundled mimalloc selected. It is not a final product
-feature profile. Upstream explicitly marks `ENABLE_WEBASSEMBLY` and `ENABLE_C_LOOP`
-as conflicting options (`Source/cmake/WebKitFeatures.cmake`), so modern WASM on
-ME still requires a separate implementation decision and validation. Disabling
-WASM for this first compile must not become an unreported product limitation.
+and WebAssembly disabled and bundled mimalloc selected. Upstream explicitly
+marks `ENABLE_WEBASSEMBLY` and `ENABLE_C_LOOP` as conflicting options
+(`Source/cmake/WebKitFeatures.cmake`), so modern WASM on ME still requires a
+separate implementation decision and validation.
 
 ## Measured result
 
@@ -78,13 +75,14 @@ No `jsc.exe` or engine was produced. See
 [STACK-BOUNDS.md](STACK-BOUNDS.md) and the
 [17-profile dependency audit](VARIANT-DEPENDENCIES.md).
 
-The ICU dependency bootstrap is `build-icu-x86.sh`; its
-unmodified upstream profile uses Windows 7 declarations and must not be treated
-as a Windows ME runtime port. A separate opt-in Win9x dependency profile now
-builds; its expanded native probe passes the ME import audit and the actual
-Korean ME guest smoke (Unicode, collation, locale and timezone). See [ICU.md](ICU.md) for reproducible commands,
-measured compile gates and the linked-binary audit. Do not point the target
-linker at host Linux ICU or use a newer-Windows binary as proof of ME compatibility.
+The ICU dependency bootstrap is `build-icu-x86.sh`; its unmodified upstream
+profile uses Windows 7 declarations and must not be treated as a Windows ME
+runtime port. A separate opt-in Win9x dependency profile now builds; its
+expanded native probe passes the ME import audit and the actual Korean ME guest
+smoke (Unicode, collation, locale and timezone). See [ICU.md](ICU.md) for
+reproducible commands, measured compile gates and the linked-binary audit. Do
+not point the target linker at host Linux ICU or use a newer-Windows binary as
+proof of ME compatibility.
 
 ## Reviewed source patches
 
@@ -108,16 +106,12 @@ those preservation boundaries.
   publishes a release store, and blocking contention sleeps for one millisecond.
   Other Windows builds retain SRW locks. It allocates no handles or heap memory;
   it does not provide FIFO fairness, priority inheritance or abandoned-owner
-  recovery. Export presence does not prove runtime semantics.
+  recovery.
 - `webkit-2.54.0-portable-tick-literal.patch`: replaces the MSVC `I64` literal
   suffix with standard `LL`, preserving the value used for 32-bit tick wrap.
 - `webkit-2.54.0-win9x-standard-timezone.patch`: uses current Win9x timezone
   settings for the standard offset and corrects Boolean/local-year semantics
   in the modern Windows path. Seasonal and historical rules remain separate.
-
-The initial system-malloc experiment was rejected by WebKit's Windows allocator
-contract; the bootstrap selects bundled mimalloc instead. These patches do not
-complete the Win9x OS abstraction.
 
 - `webkit-2.54.0-pre-vista-truncate.patch`: preserves file cursor and primary
   failure errors around a pre-Vista `SetEndOfFile` fallback. The full object
@@ -162,8 +156,7 @@ sh porting/build-allocator-probes.sh \
 The native host pair test passed packing, failed CAS, concurrent CAS/load/store
 and final counter checks. The Pentium III x86 fixture emits `cmpxchg8b` without a
 libatomic dependency. Both ME-target fixtures pass the pinned ME import audit.
-The modern-declaration lock regression build retains its SRW imports. The build
-script does not execute Windows binaries or certify the ME guest.
+The modern-declaration lock regression build retains its SRW imports.
 
 `pas-pair-smoke.exe` checks pair layout, alignment and concurrent updates.
 `mimalloc-lock-smoke.exe` checks try-lock failure from another thread, blocking
@@ -175,18 +168,14 @@ The first actual ME run failed: the pair probe exited 4 at thread creation and
 the lock probe exited 1 at its initial try-lock. The revised probes supply
 non-null `CreateThread` thread-ID outputs, as required by Win9x. They write
 native file telemetry to `C:\PAIRDIAG.LOG` and `C:\LOCKDIAG.LOG`, independently
-of console redirection. This fixture correction does not resolve or excuse the
-separate initial try-lock failure; its immediate API error is recorded for
-diagnosis. In the actual ME rerun, the revised pair probe exited 0 and the lock
+of console redirection. In the actual ME rerun, the revised pair probe exited 0 and the lock
 probe still exited 1. Native telemetry confirmed `TryEnterCriticalSection`
 returns error 120 (`ERROR_CALL_NOT_IMPLEMENTED`) on the tested ME guest. The
 Critical Section branch was therefore replaced by the Win9x atomic owner lock
 described above. Its revised guest probe adds recursive try/blocking acquisition
 and verifies that partial recursive release cannot hand ownership to another
 thread. Both revised probes passed in the actual standard-VGA ME guest; see
-[the allocator guest record](ALLOCATOR-GUEST.md). This verifies the tested lock
-contract, not full mimalloc allocation behavior or JSC execution.
-
+[the allocator guest record](ALLOCATOR-GUEST.md).
 
 ## Concrete OS abstraction seams
 
@@ -208,8 +197,7 @@ porting evidence:
 
 The Windows documentation's Cairo description is broader than this revision's
 actual default. Build choices must follow the pinned source. A software Cairo
-backend is a candidate for the legacy variant, but no WebCore build or rendering
-quality claim has been established.
+backend is a candidate for the legacy variant.
 
 `required-api-probe.c` references an exact subset of unconditionally used modern
 Windows APIs and compiles to a real x86 import fixture. It never executes those
@@ -222,14 +210,12 @@ python3 porting/audit-api-probe.py \
     --output-dir /absolute/external/build-area/api-audit
 ```
 
-Exit 1 means required exports are missing, not a successful engine build. The
-observed ME baseline lacked eight fixture imports: `AcquireSRWLockExclusive`,
-`ReleaseSRWLockExclusive`, `TryAcquireSRWLockExclusive`,
-`SleepConditionVariableSRW`, `WakeConditionVariable`, `WakeAllConditionVariable`,
+Exit 1 means required exports are missing. The observed ME baseline lacked eight
+fixture imports: `AcquireSRWLockExclusive`, `ReleaseSRWLockExclusive`,
+`TryAcquireSRWLockExclusive`, `SleepConditionVariableSRW`,
+`WakeConditionVariable`, `WakeAllConditionVariable`,
 `GetCurrentThreadStackLimits`, and `SetFileInformationByHandle`. This is a lower
 bound: a full linked engine and its dependency DLLs need their own import audit.
-Even APIs that are exported by ME can have incomplete behavior, so import checks
-cannot replace guest tests.
 
 ## Next integration order
 

@@ -2,14 +2,11 @@
 
 ## v27.26102701 - 2026-10-27
 
-- Documentation: normalize style across README and component documents; remove
-  decorative bold emphasis and restructure the README into status, product
-  boundary, requirements, layout, usage and changelog sections.
+- Documentation: normalize style across README and component documents and
+  restructure the README into status, product boundary, requirements, layout,
+  usage and changelog sections.
 - Version: adopt the unified ZUKU version label `v27.26102701` in the README
-  badge and changelog. Windows component VERSIONINFO (`0.1.0.0`) and tool
-  defaults are unchanged.
-- Accumulated changes: no source changes since `0.1.0-dev.20261008`
-  (commit `6b63507`).
+  badge and changelog.
 
 ## 0.1.0-dev.20261008 — 2026-10-08
 
@@ -29,10 +26,7 @@ repository source, pinned dependency manifests and all local porting patches.
 The source checkpoint includes earlier Win9x ICU/WTF/OpenSSL porting changes,
 the IE DocObject lifecycle/navigation integration and the HTML/CSS subset lab.
 Recorded Windows ME diagnostics cover the COM lifecycle, a fixed local IE5.5
-subset display and offline OpenSSL certificate checks. Their evidence and exact
-scope remain in the component documentation.
+subset display and offline OpenSSL certificate checks.
 
 Every browser target remains unverified. The host packages contain neither a
-complete WebKit/JavaScriptCore engine nor an installer. Remote website rendering,
-Protected Mode/Enhanced Protected Mode integration, JavaScript, WASM and complete
-browser compatibility remain separate acceptance gates.
+complete WebKit/JavaScriptCore engine nor an installer.

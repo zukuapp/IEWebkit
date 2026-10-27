@@ -5,11 +5,11 @@ process-local URLMon HTTPS handoff. They select the existing IEWebkit DocObject
 for an eligible top-level navigation without a local HTML launch page, server
 `OBJECT` tag, address-bar editing, or global HTTPS registry override.
 
-This is not a supported renderer. A normal adapter checks for a complete
-adjacent engine provider before registering the handoff. The explicitly named
-`navigation-diagnostic` target bypasses only that adapter availability check,
-so an isolated guest can show where IE enters the real DocObject. The DocObject
-still refuses to create a view without the engine. Never install or distribute
+A normal adapter checks for a complete adjacent engine provider before
+registering the handoff. The explicitly named `navigation-diagnostic` target
+bypasses only that adapter availability check, so an isolated guest can show
+where IE enters the real DocObject. The DocObject still refuses to create a
+view without the engine. Never install or distribute
 these diagnostic DLLs as a working browser.
 
 ## Flow and boundaries
@@ -23,22 +23,19 @@ these diagnostic DLLs as a working browser.
    PostData is decoded with a bounded walk; cyclic values fail closed.
 3. The temporary HTTPS handler checks the real BINDINFO GET verb and empty
    body. It consumes the ticket before callbacks, then reports the DocObject
-   CLSID through `BINDSTATUS_CLSIDCANINSTANTIATE`. It emits no page bytes and
-   makes no certificate, origin-commit, cookie, or HTTPS-success assertion.
+   CLSID through `BINDSTATUS_CLSIDCANINSTANTIATE`. It emits no page bytes.
 4. Every other binding delegates to the system HTTPS protocol by its explicit
    CLSID, avoiding namespace recursion. The adapter does not convert POST to GET.
 5. IE owns the original remote moniker and its address bar. The actual engine
    must subsequently fetch and commit the document with its own verified TLS,
-   web-origin model and cookies. There is no renderer or TLS provider in this
-   navigation component.
+   web-origin model and cookies.
 
 The prototype permits one adapter owner per process. Multiple browser windows,
 frame/request races with identical URLs, non-GET/header-preserving engine
 ingress, redirect/history synchronization, downloads, certificate indicators,
 and later IE security modes remain release gates. The process-local HTTPS
 registration is not chained with other add-ons, and Microsoft discourages
-overriding HTTP(S) because of performance costs. No automatic installation is
-provided.
+overriding HTTP(S) because of performance costs.
 
 ## Build and guest probes
 
@@ -56,17 +53,13 @@ provided.
 `regsvr32 /s`, start the installed Internet Explorer executable directly at
 `https://www.zuzunza.com/`, and capture `C:\ZUKUQA\IENAV.LOG` plus the visible IE
 window. Close IE and unregister both DLLs with `regsvr32 /u /s` afterward.
-No HTTP bootstrap or public TLS change is needed to test class selection.
 
 `make -C host navigation-adapter` builds the normal development adapter with the
-engine-availability gate enabled. It is a prototype, not an installer or
-a certified release.
+engine-availability gate enabled.
 
 ## Actual Windows ME / IE5.5 result
 
-The guest is Windows ME 4.90.3000, IE5.50.4134.0100, standard VGA, no NIC,
-with a private serial QA channel. Standard VGA is a COM diagnostic configuration;
-the separate Cirrus results remain unchanged.
+The guest is Windows ME 4.90.3000, IE5.50.4134.0100, standard VGA and no NIC.
 
 - Real URLMon BindToObject selected the host class for both
   `https://www.zuzunza.com/` and another remote origin. Explicit Load then
@@ -84,13 +77,9 @@ the separate Cirrus results remain unchanged.
   `12a2be612f26f1facff3390aa288aab4e350032322304c5c3ffdbbfcf3402cac`.
 - The native VARIANT negative tests passed in this guest; log SHA-256
   `ffcd16426976bebdcc31cb2554fd72d3f60a3e5d7bad64e26648db66db3ad53e`.
-  Unregistration commands were run for both diagnostic DLLs, Windows reached its
-  safe-to-power-off screen, and QEMU was stopped. The clean serial baseline
-  hash remained unchanged; the experiment is preserved in a separate overlay.
 
-No web response, certificate validation, authenticated operation, or WebKit
-rendering pass is claimed. The remaining blocker is a complete engine provider
-and its real TLS/navigation integration, followed by the gates listed above.
+The remaining blocker is a complete engine provider and its real
+TLS/navigation integration, followed by the gates listed above.
 
 ## Primary API references
 

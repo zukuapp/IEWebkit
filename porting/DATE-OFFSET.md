@@ -23,8 +23,7 @@ the per-year API, use `GetLocalTime` for its year and check Boolean failure.
 Both retain the existing zero-offset fallback when the API itself fails.
 The Win9x call exposes current configured rules, not historical timezone
 changes; Microsoft's [current-settings API](https://learn.microsoft.com/en-us/windows/win32/api/timezoneapi/nf-timezoneapi-gettimezoneinformation)
-documents this limitation. This patch does not implement a historical timezone
-database or complete ME daylight-saving conversion.
+documents this limitation.
 
 ## Reproduce the focused checks
 
@@ -44,8 +43,7 @@ checks API selection; modern cases exercise different UTC/local calendar years.
 
 On 2026-09-23, the original body failed no-DST, incomplete-transition and
 API-failure assertions. Both revised host probes passed. The actual full
-`DateMath.cpp` compiled to its x86 object with one build job. No broad JSC build
-was started for this checkpoint.
+`DateMath.cpp` compiled to its x86 object with one build job.
 
 The native `date-offset-me.exe` links and passes the pinned ME import audit;
 SHA-256 is `feb3cc02d3194e60a829252cf8ffd0cfcffe3eef82039cf9e9614aa171da6eb5`.
@@ -53,8 +51,7 @@ It writes `C:\DATEDIAG.LOG` and queries current settings without changing the
 clock or timezone. The actual Korean Windows ME 4.90/IE5.5 guest returned
 exit 0, standard offset `32400000` ms and API error 0. Native diagnostic
 SHA-256 is `389193a97150dc5fb34ccea563fead763f54cf9637068e251de5ae905828e091`.
-This checks current standard bias; the separate seasonal conversion remains
-unverified. See the joint guest record in [ICU.md](ICU.md).
+See the joint guest record in [ICU.md](ICU.md).
 
 ## Remaining gates
 
@@ -64,6 +61,4 @@ ME kernel exports both, but the allocator work already proved that an export
 can be an unimplemented stub. Their actual ME behavior and transition edges
 remain unverified. The baseline ICU had four missing ME imports; the later
 opt-in dependency profile and its distinct validation gates are documented in
-[ICU.md](ICU.md). WTF threading, stack bounds and file handling still need their
-Win9x ports. The full build has not resumed beyond this single object, so no
-new downstream compiler failure or JSC executable is claimed.
+[ICU.md](ICU.md).

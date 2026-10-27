@@ -1,7 +1,6 @@
 # Opt-in IE DocObject subset lab
 
-This is a local file renderer diagnostic, not remote website support,
-WebKit, TLS, or a release build. Build with `make -C renderer lab`.
+This is a local file renderer diagnostic. Build with `make -C renderer lab`.
 
 The lab reuses the production COM lifecycle with `IEWK_SUBSET_LAB` defined and
 links a separate private adapter rather than `host/engine_loader.cpp`. Its class
@@ -35,18 +34,13 @@ only the HTML/CSS bits and would fail the normal required-capability check.
 
 The fixture starts with the 12-byte signature `IEWKSUBSET/1\n`, followed by
 UTF-8 HTML. Only the exact fixed file reference is accepted; the adapter always
-opens that one path, verifies the signature and bounds content to 1 MiB. It does
-not follow links, execute scripts, fetch remote bytes, or pass credentials.
+opens that one path, verifies the signature and bounds content to 1 MiB.
 `IPersistMoniker` and lab-only `IPersistFile` both bind to this real file. No BHO
 or system HTTP/HTTPS protocol handler is registered by this installer.
 
 The file extension/ProgID/CLSID and MIME mappings follow Microsoft's documented
 [COM class associations](https://learn.microsoft.com/en-us/windows/win32/com/hkey-local-machine-software-classes)
 and [MIME association model](https://learn.microsoft.com/en-us/windows/win32/msi/mime-table).
-Cross-compilation and COM registration do not establish browser activation;
-only a guest run shows whether IE5.5 selects this DocObject for the fixture.
 
 The local subset display passed an actual Windows ME / IE5.5 guest test; see
-[GUEST-R5.md](GUEST-R5.md). IE6 and remote page support remain unverified. This
-lab result proves only in-place display of the fixed local fixture. The native
-TLS transport and a complete engine remain necessary for remote ZUKU pages.
+[GUEST-R5.md](GUEST-R5.md). IE6 remains unverified.

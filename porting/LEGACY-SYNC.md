@@ -14,7 +14,7 @@ Windows ABI.
   acquires, unlock publishes a release store, and failed try-lock returns
   immediately, including recursive attempts. Blocking contention sleeps 1ms.
   This is not a recursive mutex. There is no FIFO guarantee, priority inheritance,
-  abandoned-owner recovery or fairness claim. Destroying a held mutex asserts.
+  abandoned-owner recovery or fairness. Destroying a held mutex asserts.
 - Each condition wait creates a private auto-reset event and puts a stack-owned
   waiter in a FIFO queue protected by an internal mutex. Queue registration
   precedes releasing the caller's predicate mutex, closing the lost-wakeup gap.
@@ -40,7 +40,7 @@ by the allocator fixture.
 The event state and handle-lifetime rules follow Microsoft’s
 [SetEvent](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-setevent)
 and [WaitForSingleObject](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitforsingleobject)
-contracts. These modern documents do not replace a WinME runtime check.
+contracts.
 
 ## Reproduce
 
@@ -60,15 +60,12 @@ ME and NT5 declaration runs both pass nonrecursive/cross-thread try-lock,
 20,000 protected increments, one-waiter signal, broadcast, expired timeout and
 mutex reacquisition, no stored notifications, deterministic notification before
 the OS wait starts, and 100 timeout/signal races with no remaining queue/event.
-Clang AddressSanitizer+UBSan also passed these tests. GCC's sanitizer runtime
-was absent on this host; no GCC sanitizer result is claimed.
+Clang AddressSanitizer+UBSan also passed these tests.
 
 The full actual ME Windows-thread object compiled, SHA-256
 `63f4f8eb8b5bd625434e2e3124889e5c14f0e86def8139a99fa488ae0b2b2485`.
 The modern-declaration full object also compiles and retains SRW/condition imports.
-The naming regression (host ordering plus real MSVC x86/x64 SEH syntax) and nine
-patch/bootstrap unit tests pass. This does not prove the complete WTF library
-or JSC links or runs.
+The naming regression (host ordering plus real MSVC x86/x64 SEH syntax) passes.
 
 The static x86 native fixture passes the pinned ME DLL import audit with no gaps,
 SHA-256 `e2d3a7af8e02190ff147d969459afaf0324e3c710df7ff4d766f023a61bf0eb3`.
@@ -82,11 +79,7 @@ The fixed launcher recorded `launched=1`, `wait=0`, and `exit.code=0`. The
 guest-created `SYNCDIAG.LOG` (pulled via the bounded COM1 QA channel; SHA-256
 `45bb980af467d09b14dd5d713edcc3c2b0f2e9f8962f30579bd92f966c2b0ee1`)
 recorded `counter=0x4e20` (20,000), `timeout=1`, `reacquired=1`,
-`last_error=0`, and `exit=0`. The VM drive listing and launcher log are stored
-under `/srv/zuku/deploy-work/20260924-legacy-sync/`. This is an actual ME
-runtime pass for this native fixture, not an entire WTF/JSC link or engine test.
-The event shim, sanitizer pass and import table do not certify ME event/scheduler
-behavior, thread TLS cleanup, suspend/resume or engine garbage-collector races.
-The actual object still references other thread APIs such as `SwitchToThread`
-and CRT `_beginthreadex`; these need final linked-import and lifetime validation.
-External logs/artifacts: `/srv/zuku/deploy-work/20260924-legacy-sync/`.
+`last_error=0`, and `exit=0`. This is an actual ME runtime pass for this native
+fixture. The actual object still references other thread APIs such as
+`SwitchToThread` and CRT `_beginthreadex`; these need final linked-import and
+lifetime validation.

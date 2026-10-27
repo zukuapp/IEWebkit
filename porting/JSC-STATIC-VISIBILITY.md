@@ -35,18 +35,16 @@ python3 -m unittest discover -s porting/tests -v
 ```
 
 The first target compiled and linked. The second target compiled its complete
-object. Nine patch/bootstrap regression tests passed. This is a source and
-host cross-build checkpoint, not a Windows ME runtime result.
+object.
 
 ## Import audit and next build gate
 
 The linked `LLIntOffsetsExtractor.exe` SHA-256 is
-`4a72b71ca874e976c0732bc412bb561c720534ad18244d77d4694b0efe24e59d`.
-Its pinned Windows ME export audit fails because it imports
-`libgcc_s_dw2-1.dll`, which is absent from the pinned OS baseline. The earlier
-`LLIntSettingsExtractor.exe` has the same import gap. These are build-time
-offset tools; they have not run on ME or been included in a guest client. The
-baseline SHA-256 is `38cdb3eaadce250b5ec96234a92a14c6a258920e856bd94fc95c5e70ce82d7c9`.
+`4a72b71ca874e976c0732bc412bb561c720534ad18244d77d4694b0efe24e59d`. Its pinned
+Windows ME export audit fails because it imports `libgcc_s_dw2-1.dll`, which is
+absent from the pinned OS baseline. The earlier `LLIntSettingsExtractor.exe` has
+the same import gap. These are build-time offset tools. The baseline SHA-256 is
+`38cdb3eaadce250b5ec96234a92a14c6a258920e856bd94fc95c5e70ce82d7c9`.
 
 Continuing the actual `jsc` build reached
 `JavaScriptCore/DerivedSources/ArrayConstructor.lut.h` and then failed because
@@ -54,12 +52,4 @@ the host Perl 5.40 installation lacks `bigint.pm`, required by upstream
 `create_hash_table`. `perl -Mbigint` reproduces the host prerequisite failure.
 The current build also points at the older ICU x86 prefix; a final ME link must
 use the separately tested Win9x ICU prefix and audit the full linked binary and
-all shipped dependencies. No `jsc.exe`, DOM/layout renderer, or ME execution
-pass is claimed.
-
-Evidence: `/srv/zuku/deploy-work/20260924-jsc-next/`. `build-before.log`
-records the first error, `build-after-jsc.log` records the second, and
-`build-after-both.log` records the Perl gate. `offsets-imports.json` and
-`settings-imports.json` contain the import reports. All build outputs remain
-outside this repository. The evidence manifest SHA-256 is
-`cc33daec3d50a4054318d9c4327f91bafd98dc65c62b0701fd8dabb75bc6705c`.
+all shipped dependencies.

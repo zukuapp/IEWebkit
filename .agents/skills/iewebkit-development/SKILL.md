@@ -6,9 +6,9 @@ description: Port and test the independent IEWebkit WebKit/JavaScriptCore engine
 # IEWebkit development
 
 Use the independent IEWebkit checkout, not a copy of engine files in a consuming
-application repository. Its intended organization is `zukuapp`. Read the local
-AGENTS.md and select the task's exact IE/OS/content-process architecture/security
-mode with `tools/variants.py`; target existence is not a compatibility pass.
+application repository. Read the local AGENTS.md and select the task's exact
+IE/OS/content-process architecture/security mode with `tools/variants.py`;
+target existence is not a compatibility pass.
 
 ## Pick the implementation seam
 
@@ -41,13 +41,11 @@ mode with `tools/variants.py`; target existence is not a compatibility pass.
    when parallel work is requested. Keep host build outputs outside Git.
    Keep a sealed guest base, use disposable overlays and no NIC, record the
    tested executable and returned log hashes, then verify guest shutdown,
-   overlay structure, base hashes and service health. Cirrus currently proves
-   ME DirectDraw 2D only; absent hardware 3D and a shutdown blue screen bar a
-   full graphics or stability claim. See `porting/ALLOCATOR-GUEST.md` and the
-   consuming project's native probe evidence for concrete fixture patterns.
+   overlay structure, base hashes and service health. See
+   `porting/ALLOCATOR-GUEST.md` for concrete fixture patterns.
 5. Test actual remote navigation, TLS validation, DOM/JS/layout, Korean input,
-   forms, history and teardown on the selected guest. Scope guest tooling to
-   the private lab; never publish Windows media, product keys or credentials.
+   forms, history and teardown on the selected guest. Never publish Windows
+   media, product keys or credentials.
 6. Record failures and current gates precisely. `--release` requires complete,
    digest-bound guest evidence; passing source tests alone cannot certify it.
 

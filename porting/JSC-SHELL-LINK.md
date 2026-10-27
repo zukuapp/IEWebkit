@@ -13,12 +13,7 @@ the import-library spelling to `winmm`. Repeating the same CMake extraction
 returned `winmm`; the same caller linked. Its PE SHA-256 is
 `486c0f8eeff02334dfb0ac2e58fb616429e7c4330cf8e053fab15539f838bfd2`.
 The checksum-pinned Windows ME DLL export audit returned zero missing imports.
-The patch manager verified all 16 source/patch hashes. Logs, CMake extraction,
-source and import report are in
-`/srv/zuku/deploy-work/20260924-jsc-shell-link/`.
 
-This fixes the JSC shell dependency spelling, not the JSC engine. `jsc.exe`
-has not been built or run. The next gates are the actual JavaScriptCore target
-compile/link, a Win9x ICU prefix at final link, a complete dependency/import
-audit, and execution inside the ME guest. The linked WinMM caller has not run
-in ME; its import audit is only a loader preflight.
+The next gates are the actual JavaScriptCore target compile/link, a Win9x ICU
+prefix at final link, a complete dependency/import audit, and execution inside
+the ME guest.

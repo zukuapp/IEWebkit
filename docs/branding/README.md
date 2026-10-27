@@ -29,11 +29,11 @@
 
 README는 테마에 맞는 로고와 `ZUKU` 대체 텍스트를 제공합니다.
 본문과 링크는 검색 및 접근성을 위해 텍스트로 유지합니다.
-코드, 상류 저작권, 라이선스와 패키지 이름은 각 저장소의 기존 규칙을
-따릅니다. 로고 교체는 소프트웨어나 브랜드 자산의 권리를 재허가하지 않습니다.
+코드, 상류 저작권, 라이선스와 패키지 이름은 각 저장소의 기존 규칙을 따릅니다.
+권리와 고지는 [LICENSE](../../LICENSE)와
+[THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md)를 따릅니다.
 
 [한국어 개발 문서](https://docs.zuzunza.com/)에서 설치와 사용법을 확인하세요.
-기능 구현, 검증, 릴리스와 운영 활성 상태는 각각의 소스와 증거를 따릅니다.
 
 ## English
 
@@ -46,10 +46,10 @@ Use the exact official slogan above in every locale; do not translate it.
 README images select the appropriate theme and include `ZUKU` alternative text.
 Keep body content and links as text for search and accessibility.
 Preserve each repository's source, upstream notices, licenses, and package names.
-This brand update does not grant new software or brand asset rights.
+Rights and notices follow [LICENSE](../../LICENSE) and
+[THIRD_PARTY_NOTICES.md](../../THIRD_PARTY_NOTICES.md).
 
 See the [English developer documentation](https://docs.zuzunza.com/en/).
-Implementation, testing, release, and production status require separate evidence.
 
 ## 원본과 무결성 / Source and integrity
 

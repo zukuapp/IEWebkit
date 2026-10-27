@@ -32,18 +32,15 @@ confirm the existing non-Windows false result; two ELF symbol checks verify
 visibility. `-Werror=undef` checks that architecture macros remain available.
 The fixture also rejects a leaked `pthread_t` macro and verifies the API type.
 The original header failed both MinGW include orders; the actual bmalloc C
-object now compiles. No Windows execution was performed.
+object now compiles.
 
 The selected static ME-declaration executable passes the pinned ME import audit,
 SHA-256 `7f092b1f10125678c5ad577f330b8eb4a5186f813370229c926cada79aa762dc`.
-An import pass does not establish shutdown-time or dynamically resolved API
-behavior. The existing `GetModuleHandleW`/`RtlDllShutdownInProgress` discovery
+The existing `GetModuleHandleW`/`RtlDllShutdownInProgress` discovery
 logic is unchanged and still needs actual target lifetime testing.
 
 The real `ThreadingWin.cpp` retry no longer reports pthread typedef collisions
 or a redefined `PTHREAD_ONCE_INIT`. It then failed at `__except` and the absent
 SRW/condition-variable calls. The subsequent [naming checkpoint](THREAD-NAME.md)
 removes the SEH compiler error. The later [synchronization checkpoint](LEGACY-SYNC.md)
-compiles ME thread objects; the full JSC engine remains unbuilt.
-External before/after and link logs:
-`/srv/zuku/deploy-work/20260924-process-header/`.
+compiles ME thread objects.

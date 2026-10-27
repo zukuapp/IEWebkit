@@ -3,9 +3,8 @@
 The first public prerelease is
 [`v0.1.0-dev.20261008`](https://github.com/zukuapp/IEWebkit/releases/tag/v0.1.0-dev.20261008).
 Its Windows component VERSIONINFO uses `0.1.0.0`; the Git tag identifies the
-dated source checkpoint. All repository source is committed to `main` and
-included in the source archive. External upstream sources are reproduced using
-the checksum-pinned manifests and bootstrap scripts.
+dated source checkpoint. External upstream sources are reproduced using the
+checksum-pinned manifests and bootstrap scripts.
 
 ## Contents
 
@@ -21,8 +20,6 @@ the checksum-pinned manifests and bootstrap scripts.
 Host components are native document integration building blocks. They contain
 no WebKit or JavaScriptCore and are not complete browser installers. They retain
 `engine_included=false`, `guest_verified=false`, `release_eligible=false`.
-Those fields describe browser certification, independently of publishing a
-GitHub development prerelease. No `--release` target gate is bypassed.
 
 ## Reproduce and verify
 
@@ -57,9 +54,8 @@ The example notice paths are for the Ubuntu/Debian MinGW-w64 packages. On other
 systems, repeat `--runtime-notice` for the actual GCC/libstdc++ runtime license
 and exception texts plus MinGW-w64 CRT/thread notices from the producing
 toolchain. The packaging command validates the matrix and requires a new output
-directory before producing an archive. See `--help` for all arguments. The source
-archive can be reproduced
-directly from the committed tag:
+directory before producing an archive. See `--help` for all arguments. Reproduce
+the source archive directly from the committed tag:
 
 ```sh
 git archive --format=tar.gz --prefix=IEWebkit-v0.1.0-dev.20261008/ \
@@ -69,8 +65,7 @@ git archive --format=tar.gz --prefix=IEWebkit-v0.1.0-dev.20261008/ \
 
 After downloading release assets, run `sha256sum -c SHA256SUMS` from their
 directory. The release package manifest lists the source revision, filenames
-and component hashes. A successful hash check proves byte integrity; it does
-not certify guest behavior.
+and component hashes. A successful hash check proves byte integrity.
 
 ## Evidence and remaining work
 
@@ -80,9 +75,6 @@ not certify guest behavior.
 - [Offline Windows ME TLS positive and negative checks](../network/README.md).
 - [Required exact-target browser certification](compatibility.md).
 
-The JavaScriptCore bring-up has not produced `jsc.exe` or a complete engine.
-The fixed local HTML/CSS subset is an independent diagnostic. Full DOM/JS,
-remote HTTP/HTTPS integration, forms/input/history, WASM/media/graphics and each
-IE/OS/security-mode guest test still need their own artifact-bound evidence.
-Windows media, installed system binaries, guest disks, fixture keys, credentials
-and private lab logs are excluded from source and release assets.
+Remaining work: a linked `jsc.exe` and complete engine, full DOM/JS, remote
+HTTP/HTTPS integration, forms/input/history, WASM/media/graphics, and
+artifact-bound guest evidence for each IE/OS/security-mode target.

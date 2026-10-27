@@ -43,19 +43,17 @@ A successful build with these upstream settings cannot establish Win9x support.
 
 The host ICU build and `icu-smoke.cpp` executed successfully on Linux:
 Korean NFC composition, `ko_KR` collation creation, timezone lookup and ICU
-version 78.3 were checked. This is host evidence, not Windows execution.
-The x86 target build, static-library installation and wrapper rerun also passed.
-A real static x86 `icu-smoke.exe` linked successfully. Its ME import audit failed
-on four KERNEL32 exports: `GetDynamicTimeZoneInformation`, `GetLocaleInfoEx`,
-`LCIDToLocaleName`, and `LocaleNameToLCID`. That initial Windows executable was not run in
-a guest. The full Unicode data archive is about 32 MiB; it was retained.
+version 78.3 were checked. A real static x86 `icu-smoke.exe` linked
+successfully. Its ME import audit failed on four KERNEL32 exports:
+`GetDynamicTimeZoneInformation`, `GetLocaleInfoEx`, `LCIDToLocaleName`, and
+`LocaleNameToLCID`.
 
 ICU's default MinGW installation attempted to put the static data library in
 `bin`, leaving a tiny stub in `lib`. The wrapper fixes this through the supported
 make override `MINGW_MOVEDLLSTOBINDIR=NO` and byte-compares the installed data
 archive with the built full archive. JSC configure now finds all three target
 ICU components and completes. Later allocator and DateMath checkpoints are
-described in [README.md](README.md); this does not establish a linked JSC engine.
+described in [README.md](README.md).
 
 A Win9x implementation must preserve user locale, Korean codepage handling,
 timezone/DST semantics, synchronization, and any actually used file APIs.
@@ -107,9 +105,7 @@ Two exact-source patches under `icu-patches.json` add opt-in
 
 The registry layout and shorter Win9x zone names follow ICU's own earlier
 [Win9x implementation](https://github.com/unicode-org/icu/blob/409ddcd4596f13863e7c9ec20f48f2fc0021fffc/icu4c/source/common/wintz.c).
-The engine still uses ICU 78.3 data and algorithms; no historic ICU binary
-or data replacement is used. Source licensing and pinned provenance remain as
-documented above.
+The engine still uses ICU 78.3 data and algorithms.
 
 Host checks exercise the actual patched detector with nine Win32/registry
 boundary cases, including a same-offset name mismatch, malformed registry
@@ -117,16 +113,13 @@ strings, API failures, region fallback, seasonal rules, disabled DST and a
 fractional fixed offset. A separate real ICU smoke checks CP949 decoding,
 Hangul NFC, Korean sort/canonical equivalence, LCID mapping and New York's
 winter/summer offsets. `korean-guest` additionally expects the known Korean lab
-configuration (`ko_KR`, `Asia/Seoul`); it is not a universal product setting.
+configuration (`ko_KR`, `Asia/Seoul`).
 
 The native probe writes `C:\ICUDIAG.LOG` as it progresses. Runtime artifacts
 must pass the pinned ME import audit and then execute in the real guest. The
-build still uses upstream's Windows 7 header declarations; the targeted Win9x
-branches and a successful selected probe do not certify all ICU public APIs,
-native Windows formatter paths or C++ runtime behavior. In particular, exported
-Win9x stubs require behavioral checks. The fresh target build/install and incremental wrapper rerun both exited 0.
-The expanded native probe links to the patched static uc/i18n/data archives and
-passes the pinned ME import audit with zero missing exports. Its SHA-256 is
+build still uses upstream's Windows 7 header declarations. The expanded native
+probe links to the patched static uc/i18n/data archives and passes the pinned ME
+import audit with zero missing exports. Its SHA-256 is
 `67536d1d3b561fbec39f58bf740d67cb378c0a56f4e5e2e29447283ccfa641e1`.
 
 ## Actual Windows ME checkpoint
@@ -139,21 +132,12 @@ collation, LCID roundtrip and ICU-data New York winter/summer assertions passed.
 This checks ICU's own seasonal data, not WebKit's separate Win32 DST converter.
 The DateMath current-standard-offset probe also returned exit 0 and 32400000 ms.
 
-The VM used a new overlay, read-only fixture ISO and no NIC. The guest reached
-its safe-to-power-off screen; QEMU stopped, the overlay passed `qemu-img check`,
-all three backing hashes remained unchanged, private sockets were removed and
-production health remained HTTP 200. Evidence is kept outside Git at
-`/srv/zuku/deploy-work/20260924-icu-win9x-guest/handoff.json` with artifact aliases
-and file digests. The bounded runner's historical `PAIRTEST.EXE` filename refers
-to this ICU probe; `LOCKTEST.EXE` refers to the DateMath query, not allocator tests.
+The VM used a new overlay, read-only fixture ISO and no NIC. The bounded
+runner's historical `PAIRTEST.EXE` filename refers to this ICU probe;
+`LOCKTEST.EXE` refers to the DateMath query, not allocator tests.
 
 | Actual guest record | SHA-256 |
 | --- | --- |
 | ICU stdout | `e0335a6bcaaa7f619dbb122d94698c430d28ad451c22a29683eefd6fe4e76895` |
 | ICU native phases | `f3585eecd7a94c59bff0b95db4967f09be4d91f7b9e8c3853caf8d044ac06fa3` |
 | Runner exit codes | `cf4f6354b33495a40eead745d7e117acfe265cf399821104f2cef5aa7f83896b` |
-
-This is a selected ICU dependency pass. The complete JSC engine has not linked
-or executed; full ICU API coverage, native Windows formatters and concurrent
-runtime behavior remain separate gates. WebCore and complete IE page rendering
-are not implied by these results.

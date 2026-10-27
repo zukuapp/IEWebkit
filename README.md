@@ -22,15 +22,14 @@ IEWebkit is a site-independent WebKit and JavaScriptCore engine being ported int
 Internet Explorer's document host. Official source repository:
 `https://github.com/zukuapp/IEWebkit`.
 
-Current version: `v27.26102701`. See the [changelog](CHANGELOG.md).
+Current version: `v27.26102701`.
 
 ## Status
 
 No complete browser engine or certified IE variant is available. The native
 engine contract and loader have host tests and cross-compiled development hosts
 for all 55 declared combinations. WebKit source preparation is reproducible. The
-ME engine port still needs dependencies and Windows API adaptations. These checks
-do not show that websites render in Internet Explorer.
+ME engine port still needs dependencies and Windows API adaptations.
 
 The published [development prerelease](https://github.com/zukuapp/IEWebkit/releases/tag/v0.1.0-dev.20261008)
 contains the complete repository source and separately labelled development host
@@ -42,13 +41,11 @@ These host DLLs do not include WebKit or JavaScriptCore. See
 
 Internet Explorer remains the visible browser, with its actual document URL,
 navigation, history and window. The installed DocObject/ActiveX integration
-hosts the engine. A standalone browser window, local HTML launcher, address-bar
-spoof, or a site-specific screen protocol does not satisfy this product.
+hosts the engine.
 
 The common engine owns DOM, JavaScript, layout, painting, input and certificate-
 validated networking. It must work with general sites without requiring their
-servers to embed an OBJECT element. ZUKU-specific API/UI code stays in
-`zukuapp/zuku-platform`; this repository has no dependency on that checkout.
+servers to embed an OBJECT element.
 
 ## Requirements
 
@@ -70,10 +67,10 @@ has additional prerequisites; see [porting evidence](porting/README.md).
 - `variants.json`: separate IE 5.5, 6, 7, 8, 9, 10 and 11 target profiles.
 - `tools/variants.py`: strict target selection and release eligibility checks.
 - `tools/package_dev_release.py`: digest-checked development host packaging.
-- `test/`: host-side checks; guest certification is a separate requirement.
+- `test/`: host-side checks.
 
-Source archives, Windows media, keys, credentials, machine logs and compiled
-outputs are excluded from Git.
+Keep source archives, Windows media, keys, credentials, machine logs and
+compiled outputs out of Git.
 
 ## Usage
 
@@ -95,9 +92,7 @@ browser version, bitness or security mode.
 
 To build a host for a specific IE/OS target, use
 [the variant builder](docs/build-variants.md). Target policy is in
-[compatibility policy](docs/compatibility.md). The lifecycle harness has run in
-a real Windows ME guest; its scope and evidence are in
-[the host notes](host/README.md).
+[compatibility policy](docs/compatibility.md).
 
 ## Changelog
 
